@@ -966,9 +966,9 @@
         // After a fart he blows out, then groans ("ugh") - longer the more pressure he let go
         // Faces from the sketch: worried (wide eyes, brows up and in), glare (flat half-lidded eyes, V brows) and tired (squinting)
         const FACE = {
-            worried: "ʘ\u0301 ‸ ʘ\u0300", worriedWavy: "ʘ\u0301 ﹏ ʘ\u0300", worriedO: "ʘ\u0301 o ʘ\u0300",
-            glare: "ʘ\u0300 _ ʘ\u0301", lidWavy: "⊖\u0300 ﹏ ⊖\u0301", lidFlat: "⊖\u0300 _ ⊖\u0301", lidSmirk: "⊖\u0300 ᴗ ⊖\u0301",
-            lid: "⊖ ﹏ ⊖", lidPlain: "⊖ _ ⊖", tired: "ɔ _ ɔ", tiredWavy: "ɔ ﹏ ɔ"
+            worried: "ʘ\u0301 ‸ ʘ\u0300", worriedWavy: "ʘ\u0301 ≈ ʘ\u0300", worriedO: "ʘ\u0301 o ʘ\u0300",
+            glare: "ʘ\u0300 _ ʘ\u0301", lidWavy: "⊖\u0300 ≈ ⊖\u0301", lidFlat: "⊖\u0300 _ ⊖\u0301", lidSmirk: "⊖\u0300 ᴗ ⊖\u0301",
+            lid: "⊖ ≈ ⊖", lidPlain: "⊖ _ ⊖", tired: "ɔ _ ɔ", tiredWavy: "ɔ ≈ ɔ"
         };
         function applySketchFaces() {
             FART_FACE_PAIRS.normal.push([FACE.worried, FACE.lid], [FACE.tired, FACE.worriedWavy]);
@@ -981,13 +981,13 @@
             ACCENT_FACES.normal.clench.push(FACE.worriedWavy); ACCENT_FACES.angry.clench.push(FACE.lidWavy); ACCENT_FACES.normal.bearDown.push(FACE.lid); ACCENT_FACES.angry.bearDown.push(FACE.lidFlat);
         }
         const EXHALE_FACES = {
-            normal: ["- o -", "˘ o ˘"], sad: ["- o -", "╥ o ╥"], angry: ["≖ o ≖", "눈 o 눈"], loving: ["◕ o ◕", "● o ●", "◕ ³ ◕", "˘ ³ ˘"]
+            normal: ["- o -", "˘ o ˘"], sad: ["- o -", "╥ o ╥"], angry: ["≖ o ≖", "◉ o ◉"], loving: ["⊖ o ⊖", "◉ o ◉", "◕ ³ ◕", "˘ ³ ˘"]
         };
         const GROAN_FACES = {
-            normal: ["- ω -", "˘ ω ˘", "- _ -"], sad: ["╥ ω ╥", "- ω -"], angry: ["눈 ω 눈", "≖ _ ≖"], loving: ["u ω u", "◕ ω ◕", "◉ ω ◉", "˘ ω ˘"]
+            normal: ["- ≈ -", "˘ ≈ ˘", "- _ -"], sad: ["╥ ≈ ╥", "- ≈ -"], angry: ["◉ ≈ ◉", "≖ _ ≖"], loving: ["u ω u", "⊖ ≈ ⊖", "≖ ≈ ≖", "˘ ≈ ˘"]
         };
         const STRAIN_FACES = {
-            normal: ["＞ ω ＜", "≧ ω ≦"], sad: ["╥ ω ╥", "＞ ω ＜"], angry: ["◣ ⤙ ◢", "＞ ⤙ ＜"], loving: ["u ω u", "◕ ω ◕", "＞ ω ＜", "◉ ω ◉"]
+            normal: ["> ≈ <", "≧ ≈ ≦"], sad: ["╥ ≈ ╥", "> ≈ <"], angry: ["◣ ≈ ◢", "> ≈ <"], loving: ["u ω u", "⊖ ≈ ⊖", "> ≈ <", "◉ ≈ ◉"]
         };
         function playReactionSequence(stages) {
             const token = ++reactionToken; let t = 0;
@@ -1046,10 +1046,10 @@
 
         // Face pairs: [lighter push, full push]. One pair is rolled per fart and held until it ends.
         const FART_FACE_PAIRS = {
-            normal: [["\u2022 _ \u2022", "\uff1e \u2919 \uff1c"], ["\u25d4 _ \u25d4", "\uff1e \ufe4f \uff1c"], ["- _ -", "> \u2919 <"], ["\u2022 \u2919 \u2022", "\u2267 \ufe4f \u2266"], ["\u2686 _ \u2686", "\u2299 \ufe4f \u2299"], ["\u2022 \ufe4f \u2022", "\uff1e _ \uff1c"], ["\u00b0 _ \u00b0", "\u25ce \ufe4f \u25ce"], ["* _ *", "\u00d7 \ufe4f \u00d7"], ["@ _ @", "\uff1e \u2919 \uff1c"], ["x _ x", "\uff1e \ufe4f \uff1c"]],
-            sad:    [["\u2565 _ \u2565", "\uff1e \ufe4f \uff1c"], ["\u2022 \ufe4f \u2022", "\u2565 \ufe4f \u2565"], ["\u2686 \ufe4f \u2686", "\u2565 \u2919 \u2565"], ["\uff65 \ufe4f \uff65", "\uff1e \ufe4f \uff1c"], ["\u2299 \ufe4f \u2299", "\u2565 \ufe4f \u2565"], ["\u2565 \ufe4f \u2565", "\u00d7 \ufe4f \u00d7"], ["\u2299 \ufe4f \u2299", "\uff1e \ufe4f \uff1c"], ["x \ufe4f x", "\u2565 _ \u2565"]],
-            angry:  [["\ub208 _ \ub208", "\u0482 \u76ca \u0482"], ["\u2022 \u2919 \u2022", "\u2256 \u76ca \u2256"], ["\uffe3 \u30d8 \uffe3", "\uff1e \u76ca \uff1c"], ["- \u2919 -", "\u25e3 \u76ca \u25e2"], ["\u00af \ufe4f \u00af", "\uff1e \ufe4f \uff1c"], ["\u0482 _ \u0482", "\u2267 \ufe4f \u2266"], ["\u25e3 _ \u25e2", "\uff1e \ufe4f \uff1c"]],
-            loving: [["◕ ω ◕", "◕ ▽ ◕"], ["● ω ●", "◉ ▽ ◉"], ["u ω u", "u ω u"], ["◕ ‿ ◕", "◕ ω ◕"], ["˘ ³ ˘", "◕ ³ ◕"], ["◕ o ◕", "◕ ▽ ◕"], ["◉ ω ◉", "◉ ▽ ◉"], ["¬ ‿ ¬", "¬ ω ¬"], ["￣ ‿ ￣", "u ▽ u"], ["˘ ‿ ˘", "◕ ω ◕"]]
+            normal: [["\u2022 _ \u2022", "> \u2248 <"], ["\u25d4 _ \u25d4", "> \u2248 <"], ["- _ -", "> \u2248 <"], ["\u2022 \u2248 \u2022", "\u2267 \u2248 \u2266"], ["\u2686 _ \u2686", "\u2299 \u2248 \u2299"], ["\u2022 \u2248 \u2022", "> _ <"], ["\u00b0 _ \u00b0", "\u25ce \u2248 \u25ce"], ["* _ *", "\u00d7 \u2248 \u00d7"], ["@ _ @", "> \u2248 <"], ["x _ x", "> \u2248 <"]],
+            sad:    [["\u2565 _ \u2565", "> \u2248 <"], ["\u2022 \u2248 \u2022", "\u2565 \u2248 \u2565"], ["\u2686 \u2248 \u2686", "\u2565 \u2248 \u2565"], ["\uff65 \u2248 \uff65", "> \u2248 <"], ["\u2299 \u2248 \u2299", "\u2565 \u2248 \u2565"], ["\u2565 \u2248 \u2565", "\u00d7 \u2248 \u00d7"], ["\u2299 \u2248 \u2299", "> \u2248 <"], ["x \u2248 x", "\u2565 _ \u2565"]],
+            angry:  [["\u25c9 _ \u25c9", "\u0482 \u2261 \u0482"], ["\u2022 \u2248 \u2022", "\u2256 \u2261 \u2256"], ["\u2014 \u03d6 \u2014", "> \u2261 <"], ["- \u2248 -", "\u25e3 \u2261 \u25e2"], ["\u00af \u2248 \u00af", "> \u2248 <"], ["\u0482 _ \u0482", "\u2267 \u2248 \u2266"], ["\u25e3 _ \u25e2", "> \u2248 <"]],
+            loving: [["⊖ ω ⊖", "≖ ▽ ≖"], ["≖ ω ≖", "≖ ▽ ≖"], ["¬ ‿ ¬", "¬ ω ¬"], ["◕ ω ◕", "◕ ▽ ◕"], ["◉ ω ◉", "◉ ▽ ◉"], ["≖ ‿ ≖", "≖ ≈ ≖"], ["u ω u", "u ▽ u"], ["˘ ³ ˘", "◕ ³ ◕"], ["◕ o ◕", "◕ ▽ ◕"], ["˘ ‿ ˘", "≖ ω ≖"]]
         };
 
         // Reactions to the gas itself: which mood, and how likely it is to show up on a given fart
@@ -1063,36 +1063,36 @@
         };
         const MOOD_FACE_PAIRS = {
             embarrassed: {
-                default: [["˘ _ ˘", "＞ ﹏ ＜"], ["ˊ _ ˋ", "> ⤙ <"], ["- ⤙ -", "＞ ⤙ ＜"], ["• ﹏ •", "˘ ﹏ ˘"]],
-                angry:   [["˘ ヘ ˘", "≖ 益 ≖"], ["눈 ⤙ 눈", "＞ 益 ＜"]],
-                loving:  [['u ‿ u', '◕ ‿ ◕'], ['◕ ω ◕', '◕ ω ◕']]
+                default: [["˘ _ ˘", "> ≈ <"], ["ˊ _ ˋ", "> ≈ <"], ["- ≈ -", "> ≈ <"], ["• ≈ •", "˘ ≈ ˘"]],
+                angry:   [["˘ ϖ ˘", "≖ ≡ ≖"], ["◉ ≈ ◉", "> ≡ <"]],
+                loving:  [['u ‿ u', '≖ ‿ ≖'], ['⊖ ω ⊖', '⊖ ≈ ⊖']]
             },
             grossed: {
-                default: [["- ﹏ -", "× ﹏ ×"], ["◔ ⤙ ◔", "＞ ⤙ ＜"], ["⊙ ﹏ ⊙", "× ⤙ ×"]],
-                angry:   [["눈 ﹏ 눈", "× 益 ×"], ["￣ ⤙ ￣", "＞ 益 ＜"]],
-                loving:  [['u ω u', '◕ ω ◕'], ['◕ _ ◕', '◕ ω ◕']]
+                default: [["- ≈ -", "× ≈ ×"], ["◔ ≈ ◔", "> ≈ <"], ["⊙ ≈ ⊙", "× ≈ ×"]],
+                angry:   [["◉ ≈ ◉", "× ≡ ×"], ["— ≈ —", "> ≡ <"]],
+                loving:  [['u ≈ u', '⊖ ≈ ⊖'], ['⊖ _ ⊖', '≖ ≈ ≖']]
             },
             sickly: {   // foul gas: washed out, disgusted, barely holding on
-                default: [["- ﹏ -", "× ﹏ ×"], ["@ _ @", "＞ ﹏ ＜"], ["● ﹏ ●", "× _ ×"], ["° _ °", "u ﹏ u"], ["— ﹏ —", "X _ X"], ["* _ *", "è ﹏ è"]],
-                angry:   [["เ ﹏ เ", "൏ ﹏ ൏"], ["▓ _ ▓", "＞ ﹏ ＜"], ["° ﹏ °", "✖ _ ✖"]],
-                loving:  [['u ω u', 'u ω u'], ['◕ ω ◕', '◕ ω ◕'], ['◉ ω ◉', '¬ ‿ ¬']]
+                default: [["- ≈ -", "× ≈ ×"], ["@ _ @", "> ≈ <"], ["● ≈ ●", "× _ ×"], ["° _ °", "u ≈ u"], ["— ≈ —", "X _ X"], ["* _ *", "× ≈ ×"]],
+                angry:   [["◉ ≈ ◉", "◉ ≈ ◉"], ["⊖ _ ⊖", "> ≈ <"], ["° ≈ °", "✖ _ ✖"]],
+                loving:  [['u ≈ u', 'u ω u'], ['⊖ ≈ ⊖', '≖ ω ≖'], ['◉ ≈ ◉', '¬ ‿ ¬']]
             },
             alarmed: {
-                default: [["⊙ ⤙ ⊙", "◎ ⤙ ◎"], ["◔ _ ◔", "⊙ ﹏ ⊙"]],
-                angry:   [["◉ ⤙ ◉", "◎ 益 ◎"]],
-                loving:  [['◕ _ ◕', '◉ _ ◉']]
+                default: [["⊙ ≈ ⊙", "◎ ≈ ◎"], ["◔ _ ◔", "⊙ ≈ ⊙"]],
+                angry:   [["◉ ≈ ◉", "◎ ≡ ◎"]],
+                loving:  [['⊖ _ ⊖', '◉ _ ◉']]
             },
             relaxed: {
                 default: [["- _ -", "- ‿ -"], ["• _ •", "• ‿ •"]],
-                angry:   [["￣ _ ￣", "￣ ⤙ ￣"]]
+                angry:   [["— _ —", "— ≈ —"]]
             }
         };
         const MOOD_AFTER_FACES = {
-            embarrassed: { default: "˘ _ ˘", angry: "˘ ヘ ˘", loving: "u ‿ u" },
-            grossed:     { default: "- ﹏ -", angry: "ب ﹏ ب" },
-            sickly:      { default: "u _ u", angry: "ب ω ب", sad: "╥ ω ╥", loving: "u ω u" },
+            embarrassed: { default: "˘ _ ˘", angry: "˘ ϖ ˘", loving: "≖ ‿ ≖" },
+            grossed:     { default: "- ≈ -", angry: "ب ≈ ب" },
+            sickly:      { default: "u _ u", angry: "ب ω ب", sad: "╥ ω ╥", loving: "≖ ρ ≖" },
             alarmed:     { default: "⊙ _ ⊙" },
-            relaxed:     { default: "- _ -", loving: "◕ ω ◕" }
+            relaxed:     { default: "- _ -", loving: "≖ ρ ≖" }
         };
 
         function getGasMood() {
@@ -1109,19 +1109,19 @@
         }
 
         const SURPRISE_FACE_PAIRS = {
-            generic: [["⊙ _ ⊙", "◎ ﹏ ◎"], ["• _ •", "⊙ _ ⊙"], ["⚆ _ ⚆", "⊙ ﹏ ⊙"], ["◔ ▃ ◔", "◎ ﹏ ◎"]],
-            big:     [["⊙ _ ⊙", "◎ _ ◎"], ["◎ _ ◎", "◉ ﹏ ◉"], ["⚆ _ ⚆", "⊙ ⤙ ⊙"], ["◔ _ ◔", "◎ ﹏ ◎"]],
+            generic: [["⊙ _ ⊙", "◎ ≈ ◎"], ["• _ •", "⊙ _ ⊙"], ["⚆ _ ⚆", "⊙ ≈ ⊙"], ["◔ ▃ ◔", "◎ ≈ ◎"]],
+            big:     [["⊙ _ ⊙", "◎ _ ◎"], ["◎ _ ◎", "◉ ≈ ◉"], ["⚆ _ ⚆", "⊙ ≈ ⊙"], ["◔ _ ◔", "◎ ≈ ◎"]],
             normal: [],
-            sad:    [["⊙ ﹏ ⊙", "◎ ﹏ ◎"]],
-            angry:  [["◉ ⤙ ◉", "◎ ⤙ ◎"]],
-            loving: [[["◕ ω ◕", "◕ _ ◕"], ["◉ ω ◉", "◉ _ ◉"], ["◕ ‿ ◕", "◕ ▽ ◕"]]]
+            sad:    [["⊙ ≈ ⊙", "◎ ≈ ◎"]],
+            angry:  [["◉ ≈ ◉", "◎ ≈ ◎"]],
+            loving: [["⊖ ω ⊖", "⊖ _ ⊖"], ["◉ ω ◉", "◉ _ ◉"], ["◕ ‿ ◕", "≖ ▽ ≖"]]
         };
         // Short-lived effort faces layered on top of the fart's main face
         const ACCENT_FACES = {
-            normal: { blowing: ["- o -", "˘ o ˘"],   clench: ["> ⤙ <", "≧ _ ≦", "＞ _ ＜"], bearDown: ["≖ ⤙ ≖", "- ﹏ -"] },
-            sad:    { blowing: ["╥ o ╥", "- o -"],   clench: ["＞ ﹏ ＜", "╥ ⤙ ╥"],          bearDown: ["- ﹏ -", "• ⤙ •"] },
-            angry:  { blowing: ["≖ o ≖", "눈 o 눈"],   clench: ["◣ ⤙ ◢", "＞ 益 ＜"],          bearDown: ["≖ ⤙ ≖", "눈 ⤙ 눈"] },
-            loving: { blowing: ["◕ o ◕", "● o ●", "◕ ³ ◕", "˘ ³ ˘"],   clench: ["◕ ‿ ◕", "◕ ω ◕", "◕ ³ ◕"],            bearDown: ["◕ ▽ ◕", "◕ ω ◕", "◉ ω ◉"] }
+            normal: { blowing: ["- o -", "˘ o ˘"],   clench: ["> ≈ <", "≧ _ ≦", "> _ <"], bearDown: ["≖ ≈ ≖", "- ≈ -"] },
+            sad:    { blowing: ["╥ o ╥", "- o -"],   clench: ["> ≈ <", "╥ ≈ ╥"],          bearDown: ["- ≈ -", "• ≈ •"] },
+            angry:  { blowing: ["≖ o ≖", "◉ o ◉"],   clench: ["◣ ≈ ◢", "> ≡ <"],          bearDown: ["≖ ≈ ≖", "◉ ≈ ◉"] },
+            loving: { blowing: ["⊖ o ⊖", "◉ o ◉", "◕ ³ ◕", "˘ ³ ˘"], clench: ["≖ ‿ ≖", "⊖ ≈ ⊖", "◕ ³ ◕"], bearDown: ["≖ ▽ ≖", "⊖ ≈ ⊖", "≖ ω ≖"] }
         };
         function pickAccentFace(personality) {
             const power = valveState === -1 ? f_intensity : 0.72;
@@ -2712,7 +2712,7 @@
             let idleCycles = Math.floor(Date.now() / 2500) % 3;
 
             if (burpTimer > 0) {
-                face = "° ロ °"; // every personality uses the normal burp face
+                face = "° □ °"; // every personality uses the normal burp face
             } 
             else if (fartSession.active && lastFartingFace && !(valveState === -1 || isHoldingButt)) {
                 face = lastFartingFace; // fart just stopped: keep the face, no flicker
@@ -2730,66 +2730,66 @@
                     else if (p > 0.55) fartSession.hard = true;
                     face = fartSession.hard ? fartSession.pair[1] : fartSession.pair[0];
                 } else if (p <= 0.33) {
-                    if (currentPersonality === 'sad') face = "\u2022 \ufe4f \u2022";
-                    else if (currentPersonality === 'angry') face = "\u2022 \u2919 \u2022";
-                    else if (currentPersonality === 'loving') face = "◕ ω ◕";
-                    else face = onFoulGas() ? "\u00b0 \ufe4f \u00b0" : "\u2022 _ \u2022";
+                    if (currentPersonality === 'sad') face = "\u2022 \u2248 \u2022";
+                    else if (currentPersonality === 'angry') face = "\u2022 \u2248 \u2022";
+                    else if (currentPersonality === 'loving') face = "\u2256 \u03c9 \u2256";
+                    else face = onFoulGas() ? "\u00b0 \u2248 \u00b0" : "\u2022 _ \u2022";
                 } else if (p <= 0.66) {
-                    if (currentPersonality === 'sad') face = "\u2299 \ufe4f \u2299";
-                    else if (currentPersonality === 'angry') face = "\u2022 \u0300 \u2919 \u2022 \u0301";
-                    else if (currentPersonality === 'loving') face = "◕ ω ◕";
-                    else face = onFoulGas() ? "\u25cf \ufe4f \u25cf" : "\u0300 \u2919 \u0301";
+                    if (currentPersonality === 'sad') face = "\u2299 \u2248 \u2299";
+                    else if (currentPersonality === 'angry') face = "\u2022 \u0300 \u2248 \u2022 \u0301";
+                    else if (currentPersonality === 'loving') face = "\u2296 \u03c9 \u2296";
+                    else face = onFoulGas() ? "\u25cf \u2248 \u25cf" : "\u0300 \u2248 \u0301";
                 } else {
                     if (blowoutActive) {
-                        if (currentPersonality === 'normal') face = onFoulGas() ? "\u25cf \ufe4f \u25cf" : "\u00b4 \u25bd `";
-                        else if (currentPersonality === 'sad') face = "\u2565 \ufe4f \u2565";
-                        else if (currentPersonality === 'angry') face = "\u0300 \u76ca \u0301";
-                        else if (currentPersonality === 'loving') face = "◕ ω ◕";   // totally blissed out
+                        if (currentPersonality === 'normal') face = onFoulGas() ? "\u25cf \u2248 \u25cf" : "\u00b4 \u25bd `";
+                        else if (currentPersonality === 'sad') face = "\u2565 \u2248 \u2565";
+                        else if (currentPersonality === 'angry') face = "\u0300 \u2261 \u0301";
+                        else if (currentPersonality === 'loving') face = "\u2256 \u25bd \u2256";   // totally blissed out
                     } else {
-                        if (currentPersonality === 'sad') face = "\uff1e \ufe4f \uff1c";
-                        else if (currentPersonality === 'angry') face = "\u0482 \u0300 \u76ca \u0301 \u0482";
-                        else if (currentPersonality === 'loving') face = "◕ ω ◕";
-                        else face = onFoulGas() ? "\u00d7 \ufe4f \u00d7" : "\u0300 \u0434 \u0301";
+                        if (currentPersonality === 'sad') face = "> \u2248 <";
+                        else if (currentPersonality === 'angry') face = "\u0482 \u0300 \u2261 \u0301 \u0482";
+                        else if (currentPersonality === 'loving') face = "\u2256 \u25bd \u2256";
+                        else face = onFoulGas() ? "\u00d7 \u2248 \u00d7" : "\u0300 \u0434 \u0301";
                     }
                 }
             }
             else if (fartEndDelayTimer > 0) {
                 if (fartSession.after) face = fartSession.after;
-                else if (currentPersonality === 'loving') face = "≖ ω ≖";
+                else if (currentPersonality === 'loving') face = "\u2256 \u03c1 \u2256";
                 else if (currentPersonality === 'sad') face = "\uff65 _ \uff65";
-                else if (currentPersonality === 'angry') face = "\uffe3 \u2919 \uffe3";
+                else if (currentPersonality === 'angry') face = "\u2014 \u2248 \u2014";
                 else face = onFoulGas() ? "u _ u" : "\u2022 \u0301 _ \u2022 \u0300";
             }
             else if (valveState === 1 || pumpStrokePrimed) {
                 if (currentPersonality === 'loving') {
-                    face = gasPressure > 70 ? "◉ ▽ ◉" : "◕ ω ◕";
+                    face = gasPressure > 70 ? "\u25c9 \u25bd \u25c9" : "\u2256 \u03c9 \u2256";
                 } else if (onFoulGas()) {   // holding in foul gas: queasy and wilted
-                    face = gasPressure > 70 ? "\uff1e \ufe4f \uff1c" : "\u2525 \ufe4f \u2525";
+                    face = gasPressure > 70 ? "> \u2248 <" : "\u2525 \u2248 \u2525";
                 } else if (gasPressure > 70) {   // holding in a lot: weak, not fighting
-                    face = currentPersonality === 'sad' ? "\u2565 \ufe4f \u2565" : (currentPersonality === 'angry' ? FACE.lidWavy : FACE.tired);
-                } else face = "\uff1e \ufe4f \uff1c";
+                    face = currentPersonality === 'sad' ? "\u2565 \u2248 \u2565" : (currentPersonality === 'angry' ? FACE.lidWavy : FACE.tired);
+                } else face = "> \u2248 <";
             }
             else if (gasPressure > 55) {
                 const heavy = gasPressure > 80;
                 if (currentPersonality === 'loving') {   // pleasure: eyes closed, blissful
-                    face = heavy ? "◕ ▽ ◕" : "◕ ‿ ◕";
-                } else if (currentPersonality === 'sad') face = heavy ? "\u2565 \ufe4f \u2565" : "\u2022 \ufe4f \u2022";
+                    face = heavy ? "\u25c9 \u25bd \u25c9" : "\u2256 \u203f \u2256";
+                } else if (currentPersonality === 'sad') face = heavy ? "\u2565 \u2248 \u2565" : "\u2022 \u2248 \u2022";
                 else if (currentPersonality === 'angry') face = heavy ? FACE.lidWavy : FACE.glare;
-                else face = heavy ? (onFoulGas() ? "\u00d7 \ufe4f \u00d7" : FACE.tired) : FACE.worried;
+                else face = heavy ? (onFoulGas() ? "\u00d7 \u2248 \u00d7" : FACE.tired) : FACE.worried;
             }
             else {
                 if (currentPersonality === 'sad') {
-                    face = (idleCycles === 0) ? "\u2686 \ufe4f \u2686" : ((idleCycles === 1) ? "\u2299 \ufe4f \u2299" : "\u2686 _ \u2686");
+                    face = (idleCycles === 0) ? "\u2686 \u2248 \u2686" : ((idleCycles === 1) ? "\u2299 \u2248 \u2299" : "\u2686 _ \u2686");
                 } else if (currentPersonality === 'angry') {
-                    face = (idleCycles === 0) ? "\ub208 _ \ub208" : ((idleCycles === 1) ? "\u0300 _ \u0301" : "\uffe3 \u30d8 \uffe3");
+                    face = (idleCycles === 0) ? "\u25c9 _ \u25c9" : ((idleCycles === 1) ? "\u0300 _ \u0301" : "\u2014 \u03d6 \u2014");
                 } else if (currentPersonality === 'loving') {
-                    face = (idleCycles === 0) ? "◕ ω ◕" : ((idleCycles === 1) ? "◉ ω ◉" : "˘ ³ ˘");
+                    face = (idleCycles === 0) ? "\u2256 \u03c9 \u2256" : ((idleCycles === 1) ? "\u2296 \u03c9 \u2296" : "\u2256 \u03c1 \u2256");
                 } else if (onFoulGas()) {   // nasty fuel leaves him drained even between farts
-                    face = (idleCycles === 0) ? FACE.tired : ((idleCycles === 1) ? "- \ufe4f -" : "@ _ @");
+                    face = (idleCycles === 0) ? FACE.tired : ((idleCycles === 1) ? "- \u2248 -" : "@ _ @");
                 } else {
                     if (idleCycles === 0) face = "\u2022 _ \u2022";
                     else if (idleCycles === 1) face = "\u2686 _ \u2686";
-                    else face = "\u2022 \u2919 \u2022";
+                    else face = "\u2022 \u2248 \u2022";
                 }
             }
             
@@ -2978,7 +2978,7 @@
                 valveState = -1; f_intensity = power;
                 setTimeout(() => {
                     if (!isDraggingValve && !isHoldingButt && valveState === -1 && f_intensity === power) { valveState = 0; f_intensity = 0; stopFartSound(); }
-                    setReaction({ default: "˘ _ ˘", angry: "˘ ヘ ˘", loving: "˘ ‿ ˘" }, 1600);
+                    setReaction({ default: "˘ _ ˘", angry: "˘ ϖ ˘", loving: "˘ ‿ ˘" }, 1600);
                 }, dur);
                 return true;
             }
@@ -3007,7 +3007,7 @@
             function slapButt() {
                 buttTapShakeIntensity = Math.min(38, buttTapShakeIntensity + 14); buttSpringVelocity += 0.25; bodyRecoilY = 6;
                 noiseBurst(0.07, 0.5, 1100); blip('sine', 150, 55, 0.12, 0.25, 300);
-                setReaction({ default: "＞ o ＜", angry: "눈 o 눈", loving: "˘ o ˘" }, 800);
+                setReaction({ default: "> o <", angry: "◉ o ◉", loving: "˘ o ˘" }, 800);
                 if (!(gasPressure > 4 && softLeak(Math.min(0.55, 0.2 + gasPressure / 280), 150))) injectFartPuffPacket(0.3, Math.max(5, gasPressure));
             }
             window.toolDown = (p) => {
@@ -3027,11 +3027,11 @@
                 if (!toolHold || !audioCtx) return;
                 if (toolHold.tool === 'squeeze') {
                     gasPressure = Math.max(0, gasPressure - 0.35); bellySpringVelocity -= 0.008;
-                    setReaction({ default: "＞ _ ＜", angry: "눈 _ 눈", loving: "≖ ‿ ≖" }, 350);
+                    setReaction({ default: "> _ <", angry: "◉ _ ◉", loving: "≖ ‿ ≖" }, 350);
                     if (gasPressure > 6 && Date.now() - lastSqueezeToot > 300 && !busy()) { lastSqueezeToot = Date.now(); softLeak(Math.min(0.5, 0.14 + gasPressure / 260), 180); }
                 } else if (toolHold.tool === 'cheeks') {
                     buttSpringVelocity -= 0.004; shakeIntensity = Math.max(shakeIntensity, 1.2);
-                    setReaction({ default: "＞ ⤙ ＜", angry: "≖ ⤙ ≖", loving: "˘ ⤙ ˘" }, 350);
+                    setReaction({ default: "> ≈ <", angry: "≖ ≈ ≖", loving: "˘ ≈ ˘" }, 350);
                 }
             }, 33);
 
@@ -3045,7 +3045,7 @@
                 lastPokeMs = Date.now();
                 bellySpringVelocity += 0.16; bodyRecoilY = 4;
                 blip('triangle', 170, 85, 0.22, 0.12, 420);
-                setReaction({ default: "⊙ _ ⊙", angry: "눈 ⤙ 눈", loving: "˘ ‿ ˘" }, 900);
+                setReaction({ default: "⊙ _ ⊙", angry: "◉ ≈ ◉", loving: "˘ ‿ ˘" }, 900);
                 if (gasPressure > 35 && Math.random() < 0.5) softLeak(0.16 + (gasPressure / 100) * 0.25, 280);
             });
 
@@ -3055,7 +3055,7 @@
                     lastHiccupMs = Date.now();
                     bodyRecoilY = 9; buttSpringVelocity += 0.14; bellySpringVelocity += 0.1;
                     blip('sine', 400, 210, 0.08, 0.1, 0);
-                    setReaction({ default: "• o •", angry: "눈 o 눈", loving: "˘ o ˘" }, 1000);
+                    setReaction({ default: "• o •", angry: "◉ o ◉", loving: "˘ o ˘" }, 1000);
                     if (gasPressure > 45 && Math.random() < 0.4) setTimeout(() => softLeak(0.12 + Math.random() * 0.1, 180), 120);
                 }
                 setTimeout(hiccup, (currentDiet === 'soda' ? 8000 + Math.random() * 10000 : 25000 + Math.random() * 45000));
@@ -3079,7 +3079,7 @@
             // A thick lingering cloud makes him cough now and then
             function cough() {
                 if (!busy() && particles.length > 140 && Date.now() > reactionUntil && Date.now() - lastFartEndTime > 5000) {
-                    setReaction({ default: "× ﹏ ×", angry: "눈 ﹏ 눈" }, 1500);
+                    setReaction({ default: "× ≈ ×", angry: "◉ ≈ ◉" }, 1500);
                     [0, 230].forEach((d) => setTimeout(() => { bodyRecoilY = 5; noiseBurst(0.12, 0.35, 900); blip('square', 190, 120, 0.1, 0.03, 700); }, d));
                 }
                 setTimeout(cough, 6000 + Math.random() * 7000);
@@ -3097,7 +3097,7 @@
                     fn(e / ms, e); requestAnimationFrame(step);
                 })(t0);
             }
-            const HAPPY = { normal: ["\u2022 _ \u2022", "\u02d8 _ \u02d8"], sad: ["\uff65 _ \uff65", "\u2022 \ufe4f \u2022"], angry: ["\uffe3 _ \uffe3", "\ub208 _ \ub208"], loving: ["u ‿ u", "◕ ω ◕"] }; // neutral for most, blissed out for loving
+            const HAPPY = { normal: ["\u2022 _ \u2022", "\u02d8 _ \u02d8"], sad: ["\uff65 _ \uff65", "\u2022 \u2248 \u2022"], angry: ["\u2014 _ \u2014", "\u25c9 _ \u25c9"], loving: ["u ‿ u", "◕ ω ◕"] }; // neutral for most, blissed out for loving
             const idleMoves = [
                 () => { // shake that butt
                     setReaction(HAPPY, 2000);
