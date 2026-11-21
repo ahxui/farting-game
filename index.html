@@ -886,7 +886,7 @@
         let isDraggingValve = false;
         let shakeIntensity = 0;
         let particles = [];
-        let crampActiveUntil = 0, cheekGrime = 0;
+        let crampActiveUntil = 0;
         let characterState = 'idle';
         let currentPersonality = 'normal';
         let currentSimMode = 'standard'; 
@@ -1772,7 +1772,6 @@
                 if (wasLive && synthOsc1) {
                     const wetNow = getWetAmount(); if (currentGross > 0.45 || wetNow > 0.5) wetTailPops(Math.max(currentGross, wetNow * 0.25));
                     playFartTail(currentGross, lastTailIntensity);
-                    noteFartGrimeEnd(currentGross, lastTailIntensity);
                 }
                 currentGross = 0; lastTailIntensity = 0;
                 if (!audioCtx || !synthOsc1) return;
@@ -2052,13 +2051,6 @@
         // ---- Grime: poop farts cake his under-cheeks brown, and the guts can seize up ----
         const crampSelectEl = document.getElementById('cramp-select');
         const crampMode = () => (crampSelectEl ? crampSelectEl.value : 'on');
-        function noteFartGrimeEnd(gross, inten) {
-            if (selectedFuelType === 'poop') cheekGrime = Math.min(1, cheekGrime + 0.14 + Math.random() * 0.08);
-            else if (gross > 0.85) cheekGrime = Math.min(1, cheekGrime + 0.04);
-        }
-        function updateGrime() {
-            cheekGrime = Math.max(0, cheekGrime - 0.00002);
-        }
 
         function syncGasColorToFuel() {
             if (gasColorSelect.value !== 'match') {
@@ -2731,24 +2723,6 @@
             ctx.restore();
             };
             drawButtCheeks();
-            // Poop-fuel farts gnarl the under-cheeks brown over time
-            if (cheekGrime > 0.03) {
-                ctx.save(); organicApply('butt', baseX + finalButtOffsetX, bY + bH * 0.5 + shiverY);
-                const cga = Math.min(0.72, cheekGrime * 0.8);
-                for (let ci = 0; ci < 2; ci++) {
-                    const side = ci ? 1 : -1, cx0 = baseX + side * bW_clamped * (ci ? 0.26 : 0.30) + finalButtOffsetX, cy0 = bY + bH * (ci ? 0.89 : 0.87) + shiverY;
-                    ctx.fillStyle = 'rgba(104, 66, 30, ' + cga.toFixed(3) + ')';
-                    ctx.beginPath(); ctx.ellipse(cx0, cy0, bW_clamped * 0.19, bH * 0.145, side * 0.25, 0, Math.PI * 2); ctx.fill();
-                    ctx.beginPath(); ctx.ellipse(cx0 + side * bW_clamped * 0.13, cy0 + bH * 0.03, bW_clamped * 0.1, bH * 0.09, side * 0.5, 0, Math.PI * 2); ctx.fill();
-                    ctx.beginPath(); ctx.ellipse(cx0 - side * bW_clamped * 0.13, cy0 - bH * 0.02, bW_clamped * 0.09, bH * 0.07, side * 0.1, 0, Math.PI * 2); ctx.fill();
-                    ctx.fillStyle = 'rgba(58, 36, 16, ' + Math.min(0.85, cga * 1.15).toFixed(3) + ')';
-                    ctx.beginPath(); ctx.ellipse(cx0 + side * bW_clamped * 0.02, cy0 + bH * 0.02, bW_clamped * 0.075, bH * 0.055, 0, 0, Math.PI * 2); ctx.fill();
-                    ctx.beginPath(); ctx.ellipse(cx0 + side * bW_clamped * 0.05, cy0 + bH * 0.13 + (cheekGrime * 18), bW_clamped * 0.028, bH * (0.06 + cheekGrime * 0.25), side * 0.25, 0, Math.PI * 2); ctx.fill();
-                    ctx.fillStyle = 'rgba(224, 190, 140, ' + (cga * 0.4).toFixed(3) + ')';
-                    ctx.beginPath(); ctx.ellipse(cx0 - side * bW_clamped * 0.06, cy0 - bH * 0.05, bW_clamped * 0.05, bH * 0.035, side * 0.6, 0, Math.PI * 2); ctx.fill();
-                }
-                ctx.restore();
-            }
             // Chest Shield mesh
             const drawChestShape = (alpha) => {
                 if (alpha <= 0.01) return;
@@ -3309,7 +3283,7 @@
             shakeEl.addEventListener('input', () => { shakeScale = parseFloat(shakeEl.value); });
             lingerEl.addEventListener('change', () => { gasLingerFactor = { short: 1.7, normal: 1, long: 0.5 }[lingerEl.value] || 1; });
             document.getElementById('reset-fella-btn').addEventListener('click', () => {
-                gasPressure = 15; burpPressure = 0; burpAutoUntil = 0; stopBurpVoice(); particles.length = 0; cheekGrime = 0;  valveState = 0; f_intensity = 0; isHoldingButt = false; isAutoPumpingActive = false;
+                gasPressure = 15; burpPressure = 0; burpAutoUntil = 0; stopBurpVoice(); particles.length = 0;  valveState = 0; f_intensity = 0; isHoldingButt = false; isAutoPumpingActive = false;
                 reactionFace = null; reactionUntil = 0; try { stopFartSound(); } catch (e) {}
             });
             const camEl = document.getElementById('layout-cam'), uiEl = document.getElementById('layout-ui'), charEl = document.getElementById('layout-char');
@@ -3842,7 +3816,23 @@
             }, 16);
         }
 
+        let engineErrorBadge = null;
+        function reportEngineError(err) {
+            try {
+                if (!engineErrorBadge) {
+                    engineErrorBadge = document.createElement('div');
+                    engineErrorBadge.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:9999;background:#2b0d0d;color:#ffb4b4;font:10px monospace;padding:6px 8px;border-radius:6px;max-width:70vw;white-space:pre-wrap;pointer-events:none;';
+                    (document.body || document.documentElement).appendChild(engineErrorBadge);
+                }
+                engineErrorBadge.textContent = 'engine slipped (kept running): ' + (err && err.message ? err.message + ' | ' + String(err.stack || '').split('\n')[1] : String(err));
+            } catch (e2) {}
+        }
+        window.addEventListener('error', (ev) => reportEngineError(ev.error || ev.message));
+        window.addEventListener('unhandledrejection', (ev) => reportEngineError(ev.reason));
+
         function loop() {
+            requestAnimationFrame(loop);
+            try {
             ctx.fillStyle = '#e5e1d7'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.save();
@@ -3853,7 +3843,6 @@
             ctx.fillStyle = ambientGrad; ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.restore();
 
-            updateGrime();
             updateLogic();
             ctx.save(); ctx.translate(canvas.width * 0.5 + currentShakeX, canvas.height * fellaYBaselineFactor + currentShakeY);
             ctx.scale(cameraZoom * viewFit * charScale, cameraZoom * viewFit * charScale); ctx.translate(-canvas.width * 0.5, -canvas.height * fellaYBaselineFactor);
@@ -3866,8 +3855,7 @@
             
             drawGasDiscolorationTintOverlay();
             drawFellaFaceCamOverlay(); 
-            
-            requestAnimationFrame(loop);
+            } catch (err) { reportEngineError(err); }
         }
 
         loop();
