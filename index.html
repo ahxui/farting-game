@@ -1281,31 +1281,49 @@
             } catch (e) { console.error(e); }
         });
 
-        // Gut grumbles are small, very deep farts: same voice as the fart engine at low pressure, short and slow
+        // Gut grumbles: peristaltic churn - chains of very deep short groans that wander down and gurgle
         function gutGrumble(level) {
             if (!audioCtx || !masterGainNode) return;
             const ct = audioCtx.currentTime, R = (a, b) => a + Math.random() * (b - a);
-            const dur = 0.45 + Math.random() * 0.9 + level * 0.4;
-            const f = Math.max(38, calculateCurrentAcousticFrequency(5 + Math.random() * 6) * R(0.75, 1.0) * 0.8);
-            const vol = Math.min(0.45, 0.16 + level * 0.4);
-            const mk = (type, fq, to) => { const o = audioCtx.createOscillator(); o.type = type; o.frequency.setValueAtTime(fq, ct); o.frequency.linearRampToValueAtTime(to, ct + dur); return o; };
-            const o1 = mk('sawtooth', f, f * R(0.72, 0.92)), o2 = mk('triangle', f / 2, f / 2 * 0.85), sub = mk('sine', f / 4, f / 4 * 0.85);
-            const mix = audioCtx.createGain(), subG = audioCtx.createGain(); subG.gain.value = 0.5;
-            o1.connect(mix); o2.connect(mix); sub.connect(subG); subG.connect(mix);
-            const flap = audioCtx.createOscillator(); flap.type = 'triangle'; flap.frequency.value = R(26, 46);
-            const flapD = audioCtx.createGain(); flapD.gain.value = 0.4, vca = audioCtx.createGain(); vca.gain.value = 1;
-            flap.connect(flapD); flapD.connect(vca.gain);
-            const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = R(200, 280); lp.Q.value = 3.5;
-            const env = audioCtx.createGain(); env.gain.setValueAtTime(0.0001, ct);
-            env.gain.linearRampToValueAtTime(vol, ct + 0.07);
-            for (let t = 0.2; t < dur - 0.15; t += R(0.1, 0.22)) env.gain.linearRampToValueAtTime(vol * R(0.5, 1.0), ct + t);   // uneven bubbling
-            env.gain.linearRampToValueAtTime(0.0001, ct + dur);
-            const nb = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * dur), audioCtx.sampleRate), nd = nb.getChannelData(0);
-            for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+            const pulses = 2 + Math.floor(Math.random() * 2) + (level > 0.5 ? 1 : 0);
+            const master = audioCtx.createGain(); master.gain.value = Math.min(0.5, 0.14 + level * 0.3);
+            const churn = audioCtx.createBiquadFilter(); churn.type = 'lowpass'; churn.frequency.setValueAtTime(R(140, 220), ct); churn.Q.value = 2.2;
+            const shake = audioCtx.createOscillator(); shake.type = 'sine'; shake.frequency.value = R(0.7, 1.4);
+            const shakeD = audioCtx.createGain(); shakeD.gain.value = R(30, 60);
+            shake.connect(shakeD); shakeD.connect(churn.frequency);
+            churn.connect(master); master.connect(masterGainNode);
+            let t = ct;
+            for (let i = 0; i < pulses; i++) {
+                const dur = R(0.28, 0.6);
+                const f = R(30, 52) * (selectedFuelType === 'poop' ? 0.8 : 1);
+                const o1 = audioCtx.createOscillator(); o1.type = 'sawtooth';
+                o1.frequency.setValueAtTime(f, t); o1.frequency.linearRampToValueAtTime(f * R(0.6, 0.85), t + dur);
+                const o2 = audioCtx.createOscillator(); o2.type = 'sine';
+                o2.frequency.setValueAtTime(f / 2, t); o2.frequency.linearRampToValueAtTime(f / 2 * 0.8, t + dur);
+                const mix = audioCtx.createGain();
+                o1.connect(mix); o2.connect(mix);
+                const env = audioCtx.createGain();
+                env.gain.setValueAtTime(0.0001, t);
+                env.gain.linearRampToValueAtTime(R(0.55, 1.0), t + dur * R(0.2, 0.45));
+                env.gain.linearRampToValueAtTime(R(0.25, 0.6), t + dur * R(0.6, 0.8));
+                env.gain.linearRampToValueAtTime(0.0001, t + dur);
+                const flap = audioCtx.createOscillator(); flap.type = 'triangle'; flap.frequency.value = R(18, 34);
+                const flapD = audioCtx.createGain(); flapD.gain.value = 0.5;
+                const vca = audioCtx.createGain(); vca.gain.value = 1;
+                flap.connect(flapD); flapD.connect(vca.gain);
+                mix.connect(vca); vca.connect(env); env.connect(churn);
+                [o1, o2, flap].forEach((o) => { o.start(t); o.stop(t + dur + 0.05); });
+                t += dur * R(0.55, 0.9);
+            }
+            const nb = audioCtx.createBuffer(1, Math.max(1, Math.floor(audioCtx.sampleRate * (t - ct + 0.4))), audioCtx.sampleRate), nd = nb.getChannelData(0);
+            let bz = 0;
+            for (let i = 0; i < nd.length; i++) { bz = (bz + 0.045 * (Math.random() * 2 - 1)) / 1.045; nd[i] = bz * 5.2; }
             const noise = audioCtx.createBufferSource(); noise.buffer = nb;
-            const nG = audioCtx.createGain(); nG.gain.value = 0.22; noise.connect(nG); nG.connect(lp);
-            mix.connect(vca); vca.connect(lp); lp.connect(env); env.connect(masterGainNode);
-            [o1, o2, sub, flap].forEach((o) => { o.start(ct); o.stop(ct + dur + 0.1); }); noise.start(ct);
+            const nf = audioCtx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = R(90, 150); nf.Q.value = 1.1;
+            const nG = audioCtx.createGain();
+            nG.gain.setValueAtTime(0.0001, ct); nG.gain.linearRampToValueAtTime(0.12, ct + 0.15); nG.gain.linearRampToValueAtTime(0.0001, t + 0.3);
+            noise.connect(nf); nf.connect(nG); nG.connect(master); noise.start(ct); noise.stop(t + 0.4);
+            shake.stop(t + 0.4);
         }
 
         function startStomachChurn() {
@@ -1517,7 +1535,7 @@
                     synthOscSqueak.start(ct);
                 }
 
-                const bufferSize = audioCtx.sampleRate * 1;
+                const bufferSize = audioCtx.sampleRate * 4;
                 const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                 const data = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
@@ -1529,7 +1547,8 @@
                 if (currentDiet === 'chili') noiseFactor *= 2.2; 
                 if (muffleSelect.value === 'muffled') noiseFactor *= 1.5; 
 
-                synthNoiseGain.gain.setValueAtTime((!blowoutActive || gasPressure > 65 ? 0.17 : noiseFactor) * intensity, ct);
+                const nBlendS = Math.min(1, gasPressure / 65);
+                synthNoiseGain.gain.setValueAtTime((noiseFactor * (1 - nBlendS) + 0.17 * nBlendS) * intensity, ct);
 
                 synthNoiseNode.connect(synthNoiseGain); synthNoiseGain.connect(mainFartFilter); synthNoiseNode.start();
 
@@ -1636,7 +1655,7 @@
                     const nowMs = Date.now();
                     baseTargetGain *= (1 - small * 0.25) * (1 - Math.min(0.85, gross * 0.4 + graphFx.sputter * 0.5) * (0.5 + 0.5 * Math.sin(nowMs / 29) * Math.sin(nowMs / 83 + 1)));   // sputtering dips
                     synthGain.gain.value = baseTargetGain;
-                    if (synthCrackGain) synthCrackGain.gain.value = Math.max(0, gross + graphFx.crackle) * 0.3 * intensity * (Math.random() < 0.5 ? Math.random() : 0);
+                    if (synthCrackGain) synthCrackGain.gain.value = Math.max(0, gross + graphFx.crackle) * 0.3 * intensity * (Math.random() < 0.4 ? Math.random() * 0.55 : 0);
                     if (synthSqueal) { synthSqueal.frequency.value = 900 + 500 * Math.sin(nowMs / 140) + Math.random() * 60; synthSquealGain.gain.value = Math.max(0, graphFx.squeal) * 0.09 * intensity; }
                     if (wetEff > 0.35 && Date.now() >= nextWetBubbleAt) {
                         playWetBubble(Math.min(1, wetEff * 0.5));
@@ -1647,7 +1666,7 @@
                 let noiseFactor = selectedFuelType === 'pureair' ? 0.45 : 0.14;
                 if (currentDiet === 'chili') noiseFactor *= 2.2;
                 if (muffleSelect.value === 'muffled') noiseFactor *= 1.6;
-                if (synthNoiseGain) synthNoiseGain.gain.value = (!blowoutActive || gasPressure > 65 ? 0.17 : noiseFactor) * intensity * (1 - 0.5 * small);
+                if (synthNoiseGain) { const nBlend = Math.min(1, gasPressure / 65); synthNoiseGain.gain.value = (noiseFactor * (1 - nBlend) + 0.17 * nBlend) * intensity * (1 - 0.5 * small); }
 
                 let filterCutoff = 450 + (intensity * 350);
                 if (!blowoutActive) {
@@ -1798,7 +1817,7 @@
                 const R = (a, b) => a + Math.random() * (b - a);
 
                 // Glottal "vocal fry" voice: detuned saws sliding down in pitch, with a little jitter
-                const f0 = R(78, 98) - press * 12, f1 = R(30, 38);
+                const f0 = R(62, 82) - press * 12, f1 = R(24, 32);
                 const voice = audioCtx.createGain(); voice.gain.value = 0.5;
                 [0, 2.6].forEach((detune) => {
                     const o = audioCtx.createOscillator(); o.type = 'sawtooth';
@@ -1816,15 +1835,15 @@
 
                 // Crackly fry pulses chop the voice up
                 const fryVCA = audioCtx.createGain(); fryVCA.gain.value = 0.55;
-                const fry = audioCtx.createOscillator(); fry.type = 'square'; fry.frequency.value = R(22, 32);
-                const fryDepth = audioCtx.createGain(); fryDepth.gain.value = 0.45;
+                const fry = audioCtx.createOscillator(); fry.type = 'square'; fry.frequency.value = R(19, 28);
+                const fryDepth = audioCtx.createGain(); fryDepth.gain.value = 0.55;
                 fry.connect(fryDepth); fryDepth.connect(fryVCA.gain); fry.start(ct); fry.stop(ct + dur + 0.05);
                 voice.connect(fryVCA);
 
                 // Rasp: heavy soft-clipping
                 const shaper = audioCtx.createWaveShaper();
                 const curve = new Float32Array(1024);
-                for (let i = 0; i < 1024; i++) { const x = (i / 512) - 1; curve[i] = Math.tanh(x * 6); }
+                for (let i = 0; i < 1024; i++) { const x = (i / 512) - 1; curve[i] = Math.tanh(x * 9); }
                 shaper.curve = curve; shaper.oversample = '2x';
                 fryVCA.connect(shaper);
 
@@ -1846,8 +1865,8 @@
                 for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
                 const noise = audioCtx.createBufferSource(); noise.buffer = buf;
                 const nf = audioCtx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = R(700, 1000); nf.Q.value = 1.4;
-                const nVCA = audioCtx.createGain(); nVCA.gain.value = 0.16;
-                const gurgle = audioCtx.createOscillator(); gurgle.frequency.value = R(9, 14);
+                const nVCA = audioCtx.createGain(); nVCA.gain.value = 0.22;
+                const gurgle = audioCtx.createOscillator(); gurgle.frequency.value = R(6.5, 10);
                 const gurgleD = audioCtx.createGain(); gurgleD.gain.value = 0.12;
                 gurgle.connect(gurgleD); gurgleD.connect(nVCA.gain); gurgle.start(ct); gurgle.stop(ct + dur + 0.05);
                 fryDepth.connect(nVCA.gain);
@@ -1866,7 +1885,7 @@
                 env.gain.exponentialRampToValueAtTime(0.001, ct + dur);
                 const comp = audioCtx.createDynamicsCompressor();
                 const out = audioCtx.createGain(); out.gain.value = 0.55;
-                const tone = audioCtx.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 3200;
+                const tone = audioCtx.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 2800;
                 formants.connect(env); env.connect(tone); tone.connect(comp); comp.connect(out); out.connect(masterGainNode);
             } catch (e) {}
         }
