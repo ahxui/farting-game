@@ -888,6 +888,7 @@
         let shakeIntensity = 0;
         let particles = [];
         let floorStainList = [], sludgeDrips = [], crampActiveUntil = 0;
+        let stainLayer = null, stainLayerDirty = true, lastStainRebuild = 0, grimeWisps = [], cheekGrime = 0;
         let characterState = 'idle';
         let currentPersonality = 'normal';
         let currentSimMode = 'standard'; 
@@ -2039,20 +2040,25 @@
             }
         }
 
-        // ---- Floor grime: poop-fuel sludge leaves stains, drips and the occasional cramp ----
+        // ---- Floor grime: poop sludge stains the floor, drips off him and reeks ----
         const grimeSelectEl = document.getElementById('grime-select');
         const grimeMode = () => (grimeSelectEl ? grimeSelectEl.value : 'off');
         function addFloorStain(x, y, wPx, hPx, streak) {
             const dk = 1 - gasDarken();
+            const lobs = [], dots = [];
+            const lobN = streak ? 0 : 4 + Math.floor(Math.random() * 3);
+            for (let i = 0; i < lobN; i++) lobs.push({ dx: (Math.random() - 0.5) * wPx * 0.75, dy: (Math.random() - 0.5) * hPx * 0.6, w: 0.5 + Math.random() * 0.35, h: 0.5 + Math.random() * 0.35, rot: Math.random() * Math.PI });
+            const dotN = 8 + Math.floor(Math.random() * 10);
+            for (let i = 0; i < dotN; i++) dots.push({ dx: (Math.random() - 0.5) * wPx * 1.7, dy: (Math.random() - 0.5) * hPx * 1.9, r: 1.5 + Math.random() * 3.6 });
             floorStainList.push({
-                x, y, w: wPx, h: hPx, age: 0,
-                seed: Math.random() * 1000,
-                r: Math.round((streak ? 74 : 96) * dk + Math.random() * 14),
-                g: Math.round((streak ? 48 : 62) * dk + Math.random() * 8),
-                b: Math.round((streak ? 26 : 34) * dk + Math.random() * 6),
-                alpha: 0.6 + Math.random() * 0.22
+                x, y, w: wPx, h: hPx, streak: !!streak, age: 0, lobs, dots,
+                r: Math.round((streak ? 86 : 112) * dk + Math.random() * 12),
+                g: Math.round((streak ? 56 : 72) * dk + Math.random() * 8),
+                b: Math.round((streak ? 30 : 40) * dk + Math.random() * 5),
+                alpha: 0.72 + Math.random() * 0.2
             });
             if (floorStainList.length > 150) floorStainList.shift();
+            stainLayerDirty = true;
         }
         function playSludgeSplat(vol) {
             if (!audioCtx || !masterGainNode) return;
@@ -2067,20 +2073,21 @@
         function grimeFromFartEnd(gross, inten) {
             if (grimeMode() === 'off') return;
             const poopHeavy = selectedFuelType === 'poop';
+            cheekGrime = Math.min(1, cheekGrime + (poopHeavy ? 0.14 + Math.random() * 0.08 : gross > 0.85 ? 0.04 : 0));
             if (!poopHeavy && gross < 0.85) return;
             if (!poopHeavy && Math.random() > gross * 0.25) return;
-            if (Math.random() > 0.25 + Math.min(0.7, inten * 0.8)) return;
+            if (Math.random() > 0.35 + Math.min(0.7, inten * 0.8)) return;
             const floorY = canvas.height * fellaYBaselineFactor + 4;
-            const n = 1 + Math.floor(Math.random() * 2 + inten * 1.6);
+            const n = 2 + Math.floor(Math.random() * 3 + inten * 2);
             for (let i = 0; i < n; i++) {
-                const spread = (Math.random() - 0.5) * simButtW * (0.4 + inten * 0.25);
-                const big = gasPressure > 78 && Math.random() < 0.45;
-                addFloorStain(simButtX + spread + (big ? (Math.random() - 0.3) * 60 : 0), floorY + Math.random() * 3,
-                    big ? 60 + Math.random() * 80 : 28 + Math.random() * 40,
-                    big ? 14 + Math.random() * 12 : 8 + Math.random() * 8, false);
+                const spread = (Math.random() - 0.5) * simButtW * (0.55 + inten * 0.25);
+                const big = gasPressure > 78 && Math.random() < 0.5;
+                addFloorStain(simButtX + spread + (big ? (Math.random() - 0.3) * 70 : 0), floorY + Math.random() * 3,
+                    big ? 64 + Math.random() * 90 : 30 + Math.random() * 44,
+                    big ? 15 + Math.random() * 13 : 9 + Math.random() * 9, false);
             }
-            if (poopHeavy && gasPressure > 82 && grimeMode() === 'full' && Math.random() < 0.4) {
-                addFloorStain(simButtX - simButtW * (0.25 + Math.random() * 0.25), floorY, 120 + Math.random() * 90, 13 + Math.random() * 9, true);
+            if (poopHeavy && gasPressure > 82 && grimeMode() === 'full' && Math.random() < 0.4 && sludgeDrips.length < 40) {
+                addFloorStain(simButtX - simButtW * (0.25 + Math.random() * 0.25), floorY, 130 + Math.random() * 100, 14 + Math.random() * 10, true);
                 const m = 10 + Math.floor(Math.random() * 12);
                 for (let i = 0; i < m; i++) {
                     sludgeDrips.push({
@@ -2094,56 +2101,105 @@
                 for (let i = 0; i < sN; i++) setTimeout(() => playSludgeSplat(0.18 + Math.random() * 0.08), 60 + i * 110);
             }
         }
+        function ensureStainLayer() {
+            if (!stainLayer || stainLayer.width !== canvas.width || stainLayer.height !== canvas.height) {
+                stainLayer = document.createElement('canvas');
+                stainLayer.width = canvas.width || 1280; stainLayer.height = canvas.height || 760;
+                stainLayerDirty = true;
+            }
+        }
+        function paintStain(g, s) {
+            const fresh = Math.max(0, 1 - s.age / 150);
+            const a = Math.min(0.94, s.alpha + fresh * 0.25);
+            g.save();
+            if (s.streak) {
+                for (let i = 0; i <= 3; i++) {
+                    const k = i / 3;
+                    g.fillStyle = 'rgba(' + s.r + ',' + s.g + ',' + s.b + ',' + (a * (0.6 + 0.4 * (1 - k))).toFixed(3) + ')';
+                    g.beginPath();
+                    g.ellipse(s.x + s.w * (0.5 - k) * 0.9, s.y + (i % 2 ? 2 : -2), Math.max(3, s.w * (0.3 - 0.05 * k)), Math.max(2, s.h * (0.6 + 0.3 * k)), k * 0.25, 0, Math.PI * 2);
+                    g.fill();
+                }
+            } else {
+                g.fillStyle = 'rgba(' + s.r + ',' + s.g + ',' + s.b + ',' + a.toFixed(3) + ')';
+                g.beginPath(); g.ellipse(s.x, s.y, s.w * 0.5, s.h * 0.5, 0, 0, Math.PI * 2); g.fill();
+                for (let i = 0; i < s.lobs.length; i++) {
+                    const L = s.lobs[i];
+                    g.beginPath();
+                    g.ellipse(s.x + L.dx, s.y + L.dy, Math.max(2, s.w * 0.5 * L.w), Math.max(2, s.h * 0.5 * L.h), L.rot, 0, Math.PI * 2);
+                    g.fill();
+                }
+                g.fillStyle = 'rgba(' + Math.max(0, s.r - 34) + ',' + Math.max(0, s.g - 26) + ',' + Math.max(0, s.b - 16) + ',' + (a * 0.8).toFixed(3) + ')';
+                g.beginPath(); g.ellipse(s.x, s.y, Math.max(2, s.w * 0.26), Math.max(2, s.h * 0.34), 0, 0, Math.PI * 2); g.fill();
+            }
+            for (let i = 0; i < s.dots.length; i++) {
+                const D = s.dots[i];
+                g.fillStyle = 'rgba(' + s.r + ',' + s.g + ',' + s.b + ',' + (a * 0.8).toFixed(3) + ')';
+                g.beginPath(); g.arc(s.x + D.dx, s.y + D.dy, D.r, 0, Math.PI * 2); g.fill();
+            }
+            if (fresh > 0) {
+                g.fillStyle = 'rgba(228, 208, 172,' + (fresh * 0.2 * s.alpha).toFixed(3) + ')';
+                g.beginPath(); g.ellipse(s.x - s.w * 0.13, s.y - s.h * 0.16, Math.max(2, s.w * 0.13), Math.max(1.4, s.h * 0.13), -0.5, 0, Math.PI * 2); g.fill();
+            }
+            g.restore();
+        }
+        function renderStainLayer() {
+            ensureStainLayer();
+            const g = stainLayer.getContext('2d');
+            g.clearRect(0, 0, stainLayer.width, stainLayer.height);
+            for (let i = 0; i < floorStainList.length; i++) paintStain(g, floorStainList[i]);
+            stainLayerDirty = false; lastStainRebuild = Date.now();
+        }
         function updateGrime() {
             const floorY = canvas.height * fellaYBaselineFactor + 4;
-            if (fartVoiceLive && grimeMode() !== 'off' && selectedFuelType === 'poop' && Math.random() < 0.09) {
-                sludgeDrips.push({
-                    x: simButtX + (Math.random() - 0.5) * simButtW * 0.25, y: simButtY + simButtH * 0.5,
-                    vx: (Math.random() - 0.5) * 1.2, vy: 0.4, r: 2 + Math.random() * 3
-                });
+            if (grimeMode() === 'off') {
+                cheekGrime = Math.max(0, cheekGrime - 0.002);
+            } else {
+                cheekGrime = Math.max(0, cheekGrime - 0.00002);
+                if (fartVoiceLive && selectedFuelType === 'poop' && sludgeDrips.length < 40 && Math.random() < 0.06) {
+                    sludgeDrips.push({
+                        x: simButtX + (Math.random() - 0.5) * simButtW * 0.25, y: simButtY + simButtH * 0.5,
+                        vx: (Math.random() - 0.5) * 1.2, vy: 0.4, r: 2 + Math.random() * 3
+                    });
+                }
+                if (floorStainList.length > 4 && grimeWisps.length < 12 && Math.random() < 0.04) {
+                    const s = floorStainList[Math.floor(Math.random() * floorStainList.length)];
+                    grimeWisps.push({ x: s.x + (Math.random() - 0.5) * s.w * 0.6, y: s.y - 4, r: 7 + Math.random() * 11, vx: (Math.random() - 0.5) * 0.3 + gasWindNow * 0.4, vy: -(0.22 + Math.random() * 0.25), alpha: 0.13 + Math.random() * 0.07 });
+                }
             }
             for (let i = sludgeDrips.length - 1; i >= 0; i--) {
                 const d = sludgeDrips[i];
                 d.vy += 0.34; d.x += d.vx; d.y += d.vy; d.vx *= 0.99;
                 if (d.y >= floorY) {
                     addFloorStain(d.x, floorY + Math.random() * 3, d.r * (5 + Math.random() * 5), d.r * (2.2 + Math.random() * 1.6), false);
-                    if (grimeMode() === 'full' && Math.random() < 0.55) playSludgeSplat(Math.min(0.2, d.r * 0.035));
+                    if (grimeMode() === 'full' && Math.random() < 0.35) playSludgeSplat(Math.min(0.2, d.r * 0.035));
                     sludgeDrips.splice(i, 1);
                 } else if (d.y > canvas.height + 40 || d.x < -60 || d.x > canvas.width + 60) sludgeDrips.splice(i, 1);
+            }
+            for (let i = grimeWisps.length - 1; i >= 0; i--) {
+                const w = grimeWisps[i];
+                w.y += w.vy; w.x += w.vx; w.r += 0.12; w.alpha *= 0.986;
+                if (w.alpha < 0.02) grimeWisps.splice(i, 1);
             }
             for (let i = floorStainList.length - 1; i >= 0; i--) {
                 const s = floorStainList[i];
                 s.age++; s.alpha -= 0.000028;
-                if (s.alpha <= 0.02) floorStainList.splice(i, 1);
+                if (s.age < 420 && !s.streak) { s.w += 0.055; s.h += 0.02; }
+                if (s.alpha <= 0.02) { floorStainList.splice(i, 1); stainLayerDirty = true; }
             }
+            if (stainLayerDirty || Date.now() - lastStainRebuild > 2000) renderStainLayer();
         }
         function drawGrime() {
-            const t = Date.now() / 1000;
-            for (let i = 0; i < floorStainList.length; i++) {
-                const s = floorStainList[i];
-                const fresh = Math.max(0, 1 - s.age / 150);
-                const wob = Math.sin(s.seed + t * 0.6) * 0.02;
-                ctx.save();
-                const grad = ctx.createRadialGradient(s.x, s.y, 1, s.x, s.y, Math.max(4, s.w * 0.5));
-                grad.addColorStop(0, 'rgba(' + s.r + ', ' + s.g + ', ' + s.b + ', ' + (Math.min(0.92, s.alpha + fresh * 0.18)).toFixed(3) + ')');
-                grad.addColorStop(0.62, 'rgba(' + Math.max(0, s.r - 14) + ', ' + Math.max(0, s.g - 10) + ', ' + Math.max(0, s.b - 6) + ', ' + Math.min(0.7, s.alpha * 0.8).toFixed(3) + ')');
-                grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.ellipse(s.x, s.y, s.w * 0.5 * (1 + wob), Math.max(2, s.h * 0.5), 0, 0, Math.PI * 2);
-                ctx.fill();
-                if (fresh > 0) {
-                    ctx.fillStyle = 'rgba(210, 190, 160, ' + (fresh * 0.13 * s.alpha).toFixed(3) + ')';
-                    ctx.beginPath();
-                    ctx.ellipse(s.x - s.w * 0.12, s.y - s.h * 0.14, Math.max(2, s.w * 0.16), Math.max(1, s.h * 0.16), -0.5, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                ctx.restore();
-            }
-            ctx.fillStyle = 'rgba(74, 50, 27, 0.8)';
+            if (stainLayer) ctx.drawImage(stainLayer, 0, 0);
+            ctx.fillStyle = 'rgba(74, 50, 27, 0.85)';
             for (let i = 0; i < sludgeDrips.length; i++) {
                 const d = sludgeDrips[i];
                 ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill();
+            }
+            for (let i = 0; i < grimeWisps.length; i++) {
+                const w = grimeWisps[i];
+                ctx.fillStyle = 'rgba(104, 96, 48, ' + w.alpha.toFixed(3) + ')';
+                ctx.beginPath(); ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2); ctx.fill();
             }
         }
 
@@ -2818,6 +2874,24 @@
             ctx.restore();
             };
             drawButtCheeks();
+            // Poop-fuel farts gnarl the under-cheeks brown over time
+            if (cheekGrime > 0.03) {
+                ctx.save(); organicApply('butt', baseX + finalButtOffsetX, bY + bH * 0.5 + shiverY);
+                const cga = Math.min(0.72, cheekGrime * 0.8);
+                for (let ci = 0; ci < 2; ci++) {
+                    const side = ci ? 1 : -1, cx0 = baseX + side * bW_clamped * (ci ? 0.26 : 0.30) + finalButtOffsetX, cy0 = bY + bH * (ci ? 0.89 : 0.87) + shiverY;
+                    ctx.fillStyle = 'rgba(104, 66, 30, ' + cga.toFixed(3) + ')';
+                    ctx.beginPath(); ctx.ellipse(cx0, cy0, bW_clamped * 0.19, bH * 0.145, side * 0.25, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.ellipse(cx0 + side * bW_clamped * 0.13, cy0 + bH * 0.03, bW_clamped * 0.1, bH * 0.09, side * 0.5, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.ellipse(cx0 - side * bW_clamped * 0.13, cy0 - bH * 0.02, bW_clamped * 0.09, bH * 0.07, side * 0.1, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'rgba(58, 36, 16, ' + Math.min(0.85, cga * 1.15).toFixed(3) + ')';
+                    ctx.beginPath(); ctx.ellipse(cx0 + side * bW_clamped * 0.02, cy0 + bH * 0.02, bW_clamped * 0.075, bH * 0.055, 0, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.ellipse(cx0 + side * bW_clamped * 0.05, cy0 + bH * 0.13 + (cheekGrime * 18), bW_clamped * 0.028, bH * (0.06 + cheekGrime * 0.25), side * 0.25, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = 'rgba(224, 190, 140, ' + (cga * 0.4).toFixed(3) + ')';
+                    ctx.beginPath(); ctx.ellipse(cx0 - side * bW_clamped * 0.06, cy0 - bH * 0.05, bW_clamped * 0.05, bH * 0.035, side * 0.6, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.restore();
+            }
             // Chest Shield mesh
             const drawChestShape = (alpha) => {
                 if (alpha <= 0.01) return;
@@ -3378,7 +3452,7 @@
             shakeEl.addEventListener('input', () => { shakeScale = parseFloat(shakeEl.value); });
             lingerEl.addEventListener('change', () => { gasLingerFactor = { short: 1.7, normal: 1, long: 0.5 }[lingerEl.value] || 1; });
             document.getElementById('reset-fella-btn').addEventListener('click', () => {
-                gasPressure = 15; burpPressure = 0; burpAutoUntil = 0; stopBurpVoice(); particles.length = 0; floorStainList.length = 0; sludgeDrips.length = 0;  valveState = 0; f_intensity = 0; isHoldingButt = false; isAutoPumpingActive = false;
+                gasPressure = 15; burpPressure = 0; burpAutoUntil = 0; stopBurpVoice(); particles.length = 0; floorStainList.length = 0; sludgeDrips.length = 0; grimeWisps.length = 0; cheekGrime = 0; stainLayerDirty = true;  valveState = 0; f_intensity = 0; isHoldingButt = false; isAutoPumpingActive = false;
                 reactionFace = null; reactionUntil = 0; try { stopFartSound(); } catch (e) {}
             });
             const camEl = document.getElementById('layout-cam'), uiEl = document.getElementById('layout-ui'), charEl = document.getElementById('layout-char');
