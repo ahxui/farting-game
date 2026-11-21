@@ -1488,7 +1488,7 @@
                     mainFartFilter.Q.setValueAtTime(1.0, ct); 
                 } else {
                     mainFartFilter.frequency.setValueAtTime(!blowoutActive ? 320 : 450, ct);
-                    mainFartFilter.Q.setValueAtTime(!blowoutActive ? 4.0 : (6.5 + wetEff * 2.8), ct);
+                    mainFartFilter.Q.setValueAtTime(!blowoutActive ? 4.0 : (6.5 + Math.min(3, wetEff) * 2.5), ct);
                 }
 
                 synthOsc1 = audioCtx.createOscillator(); synthOsc1.type = selectedFuelType === 'pureair' ? 'sine' : 'sawtooth'; 
@@ -1529,7 +1529,7 @@
 
                 let noiseFactor = selectedFuelType === 'pureair' ? 0.45 : 0.12;
                 if (currentDiet === 'chili') noiseFactor *= 2.2; 
-                if (wetEff > 0) noiseFactor += (wetEff * 0.16);
+                if (wetEff > 0) noiseFactor += (Math.min(2, wetEff) * 0.1);
                 if (muffleSelect.value === 'muffled') noiseFactor *= 1.5; 
 
                 synthNoiseGain.gain.setValueAtTime((!blowoutActive || gasPressure > 65 ? 0.17 : noiseFactor) * intensity, ct);
@@ -1560,6 +1560,25 @@
             } catch(e) { console.error(e); }
         }
 
+        let nextWetBubbleAt = 0;
+        function playWetBubble(power) {
+            if (!audioCtx || !masterGainNode) return;
+            try {
+                const ct = audioCtx.currentTime;
+                const o = audioCtx.createOscillator(); o.type = 'sine';
+                const f0 = 70 + Math.random() * 130;
+                o.frequency.setValueAtTime(f0, ct);
+                o.frequency.exponentialRampToValueAtTime(f0 * (0.35 + Math.random() * 0.25), ct + 0.07 + Math.random() * 0.06);
+                const f = audioCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 420 + Math.random() * 200;
+                const g = audioCtx.createGain();
+                g.gain.setValueAtTime(0.001, ct);
+                g.gain.linearRampToValueAtTime(0.24 * power, ct + 0.015);
+                g.gain.exponentialRampToValueAtTime(0.001, ct + 0.14 + Math.random() * 0.06);
+                o.connect(f); f.connect(g); g.connect(masterGainNode);
+                o.start(ct); o.stop(ct + 0.25);
+            } catch(e) {}
+        }
+
         function updateFartSound(intensity) {
             if (!audioCtx || !synthOsc1) return;
             lastTailIntensity = intensity;
@@ -1574,7 +1593,6 @@
                 const wfAudio = getFartWobbleFlutter();
                 targetBaseFreq *= (1.0 + wfAudio.pitch);
                 const wetEff = getWetAmount() + gross * 1.4;
-                if (wetEff > 0.25 && Math.random() < 0.05 + wetEff * 0.07) targetBaseFreq *= (0.55 + Math.random() * 0.25);
 
                 synthOsc1.frequency.value = targetBaseFreq;
                 synthOsc2.frequency.value = targetBaseFreq * 0.5;
@@ -1591,7 +1609,7 @@
                 let vibrationRate = !blowoutActive ? (48 + (gasPressure * 0.45)) / Math.max(0.15, compuCheek) : (40 + (gasPressure * 0.65)) / Math.max(0.15, compuCheek);
                 if (selectedFuelType === 'nitro') vibrationRate *= 1.6;
                 if (currentDiet === 'soda') vibrationRate *= 1.8;
-                if (wetEff > 0) vibrationRate += (wetEff * 14.0);
+                if (wetEff > 0) vibrationRate += (Math.min(2.5, wetEff) * 10.0);
 
                 if (synthMod) synthMod.frequency.value = vibrationRate + (Math.random() * (!blowoutActive ? 12 : 5));
                 if (synthFlap && synthFlapDepth) {
@@ -1602,7 +1620,8 @@
                 
                 let microFlutter = 1.0;
                 if (wetEff > 0.1) {
-                    microFlutter = 1.0 + ((Math.sin(Date.now() * 0.085) * 0.22 * wetEff) + (Math.random() * 0.15 - 0.075) * wetEff);
+                    const w = Math.min(3, wetEff);
+                    microFlutter = 1.0 + Math.sin(Date.now() * 0.023 + Math.sin(Date.now() * 0.0057) * 2.5) * 0.25 * w;
                 }
                 
                 let tremoloWaveFactor = 1.0;
@@ -1621,11 +1640,15 @@
                     synthGain.gain.value = baseTargetGain;
                     if (synthCrackGain) synthCrackGain.gain.value = Math.max(0, gross + graphFx.crackle) * 0.3 * intensity * (Math.random() < 0.5 ? Math.random() : 0);
                     if (synthSqueal) { synthSqueal.frequency.value = 900 + 500 * Math.sin(nowMs / 140) + Math.random() * 60; synthSquealGain.gain.value = Math.max(0, graphFx.squeal) * 0.09 * intensity; }
+                    if (wetEff > 0.35 && Date.now() >= nextWetBubbleAt) {
+                        playWetBubble(Math.min(1, wetEff * 0.5));
+                        nextWetBubbleAt = Date.now() + 220 + Math.random() * (900 / Math.min(2, wetEff));
+                    }
                 }
                 
                 let noiseFactor = selectedFuelType === 'pureair' ? 0.45 : 0.14;
                 if (currentDiet === 'chili') noiseFactor *= 2.2;
-                if (wetEff > 0) noiseFactor += (wetEff * 0.22);
+                if (wetEff > 0) noiseFactor += (Math.min(2, wetEff) * 0.13);
                 if (muffleSelect.value === 'muffled') noiseFactor *= 1.6;
                 if (synthNoiseGain) synthNoiseGain.gain.value = (!blowoutActive || gasPressure > 65 ? 0.17 : noiseFactor) * intensity * (1 - 0.5 * small);
 
@@ -1648,7 +1671,7 @@
                         mainFartFilter.Q.value = 1.0; 
                     } else {
                         mainFartFilter.frequency.value = Math.min(2400, filterCutoff);
-                        mainFartFilter.Q.value = Math.max(0.8, (!blowoutActive ? 4.0 : (6.5 + wetEff * 3.5)));
+                        mainFartFilter.Q.value = Math.max(0.8, (!blowoutActive ? 4.0 : (6.5 + Math.min(3, wetEff) * 3.0)));
                     }
                 }
             } catch(e) {}
