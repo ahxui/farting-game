@@ -1498,7 +1498,7 @@
                     mainFartFilter.frequency.setValueAtTime(140, ct);
                     mainFartFilter.Q.setValueAtTime(1.0, ct); 
                 } else {
-                    mainFartFilter.frequency.setValueAtTime((!blowoutActive ? 320 : 450) * (1.0 - 0.32 * Math.min(1, wetEff)) * (selectedFuelType === 'poop' ? 0.85 : 1), ct);
+                    mainFartFilter.frequency.setValueAtTime((!blowoutActive ? 360 : 520) * (1.0 - 0.32 * Math.min(1, wetEff)) * (selectedFuelType === 'poop' ? 0.85 : 1), ct);
                     mainFartFilter.Q.setValueAtTime(!blowoutActive ? 4.0 : (6.5 + Math.min(2, wetEff) * 1.0), ct);
                 }
 
@@ -1508,7 +1508,7 @@
                 synthOsc2 = audioCtx.createOscillator(); synthOsc2.type = 'triangle'; synthOsc2.frequency.setValueAtTime(targetBaseFreq * 0.5, ct);
                 synthOscSub = audioCtx.createOscillator(); synthOscSub.type = 'sine'; synthOscSub.frequency.setValueAtTime(targetBaseFreq * 0.25, ct);
 
-                synthSubGain = audioCtx.createGain(); synthSubGain.gain.setValueAtTime((!blowoutActive ? 0.50 : 0.35) * compuBass * 1.4, ct);
+                synthSubGain = audioCtx.createGain(); synthSubGain.gain.setValueAtTime((!blowoutActive ? 0.50 : 0.35) * compuBass * 1.28, ct);
                 synthMod = audioCtx.createOscillator(); synthMod.type = 'sine'; synthMod.frequency.setValueAtTime(vibrationRate, ct);
                 
                 synthModGain = audioCtx.createGain(); synthModGain.gain.setValueAtTime(targetBaseFreq * (!blowoutActive ? 0.65 : 0.45), ct);
@@ -1546,7 +1546,7 @@
 
                 // ripping crackle that skips the low-pass, gated randomly by updateFartSound
                 synthCrackNode = audioCtx.createBufferSource(); synthCrackNode.buffer = buffer; synthCrackNode.loop = true;
-                synthCrackFilter = audioCtx.createBiquadFilter(); synthCrackFilter.type = 'bandpass'; synthCrackFilter.frequency.value = 700; synthCrackFilter.Q.value = 1.8;
+                synthCrackFilter = audioCtx.createBiquadFilter(); synthCrackFilter.type = 'bandpass'; synthCrackFilter.frequency.value = 1150; synthCrackFilter.Q.value = 1.4;
                 synthCrackGain = audioCtx.createGain(); synthCrackGain.gain.setValueAtTime(0.0001, ct);
                 synthCrackNode.connect(synthCrackFilter); synthCrackFilter.connect(synthCrackGain); synthCrackGain.connect(masterGainNode); synthCrackNode.start();
 
@@ -1615,7 +1615,7 @@
                 synthOsc1.frequency.value = targetBaseFreq;
                 synthOsc2.frequency.value = targetBaseFreq * 0.5;
                 if (synthOscSub) synthOscSub.frequency.value = targetBaseFreq * 0.25;
-                if (synthSubGain) synthSubGain.gain.value = (!blowoutActive ? 0.50 : 0.35) * compuBass * 1.35 * (1 + gross * 0.5 + (selectedFuelType === 'poop' ? 0.18 : 0)) * (1 + graphFx.rumble * 1.2) * (1 - 0.7 * small);
+                if (synthSubGain) synthSubGain.gain.value = (!blowoutActive ? 0.50 : 0.35) * compuBass * 1.24 * (1 + gross * 0.5 + (selectedFuelType === 'poop' ? 0.18 : 0)) * (1 + graphFx.rumble * 1.2) * (1 - 0.7 * small);
                 
                 if (synthOscSqueak && synthSqueakGain && muffleSelect.value !== 'muffled') {
                     let liveSqueakHarmonic = targetBaseFreq * (3.5 + compuSqueak * 3.5);
@@ -1670,13 +1670,13 @@
                 if (muffleSelect.value === 'muffled') noiseFactor *= 1.6;
                 if (synthNoiseGain) { const nBlend = Math.min(1, gasPressure / 65); synthNoiseGain.gain.value = (noiseFactor * (1 - nBlend) + 0.17 * nBlend) * intensity * (1 - 0.5 * small); }
 
-                let filterCutoff = 450 + (intensity * 350);
+                let filterCutoff = 520 + (intensity * 420);
                 if (!blowoutActive) {
-                    filterCutoff = 300 + (intensity * 200);
+                    filterCutoff = 340 + (intensity * 230);
                 } else if (gasPressure > 45) {
                     let crossfadeRatio = Math.min(1.0, (gasPressure - 45) / 55);
-                    let lowPressureCutoff = 450 + (intensity * 350);
-                    let highPressureCutoff = 260 + (intensity * 200);
+                    let lowPressureCutoff = 520 + (intensity * 420);
+                    let highPressureCutoff = 300 + (intensity * 230);
                     filterCutoff = lowPressureCutoff + (highPressureCutoff - lowPressureCutoff) * Math.pow(crossfadeRatio, 1.5);
                 }
                 if (selectedFuelType === 'pureair') filterCutoff += 400;
@@ -1749,9 +1749,9 @@
                 const dur = 0.25 + Math.random() * 0.3;
                 const buf = makeNoiseBuffer(dur, true);
                 const src = audioCtx.createBufferSource(); src.buffer = buf;
-                const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.2;
-                bp.frequency.setValueAtTime(320 + Math.random() * 200, ct);
-                bp.frequency.exponentialRampToValueAtTime(1000, ct + dur);
+                const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.0;
+                bp.frequency.setValueAtTime(680 + Math.random() * 240, ct);
+                bp.frequency.exponentialRampToValueAtTime(1900, ct + dur);
                 const ng = audioCtx.createGain();
                 ng.gain.setValueAtTime(0.001, ct);
                 ng.gain.linearRampToValueAtTime(0.1 * inten, ct + 0.03);
@@ -1865,7 +1865,7 @@
                 // Wet, gurgly air in the throat
                 const buf = makeNoiseBuffer(dur, true);
                 const noise = audioCtx.createBufferSource(); noise.buffer = buf;
-                const nf = audioCtx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = R(420, 700); nf.Q.value = 1.8;
+                const nf = audioCtx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = R(550, 850); nf.Q.value = 1.6;
                 const nVCA = audioCtx.createGain(); nVCA.gain.value = 0.22;
                 const gurgle = audioCtx.createOscillator(); gurgle.frequency.value = R(6.5, 10);
                 const gurgleD = audioCtx.createGain(); gurgleD.gain.value = 0.12;
