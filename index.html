@@ -713,11 +713,10 @@
                     <option value="on">On (high pressure sneaks out)</option>
                     <option value="off">Off</option>
                     </select>
-                    <div class="panel-label">FLOOR GRIME</div>
-                    <select id="grime-select" class="control-select">
-                    <option value="off">Off (spotless floor)</option>
-                    <option value="on" selected>On (sludge stains + drips)</option>
-                    <option value="full">Biohazard (+ gut cramps, splats)</option>
+                    <div class="panel-label">GUT CRAMPS</div>
+                    <select id="cramp-select" class="control-select">
+                    <option value="on" selected>On (guts seize at high pressure)</option>
+                    <option value="off">Off</option>
                     </select>
                     <div class="panel-label">GAS IGNITION SPARK</div>
                     <select id="ignition-select" class="control-select">
@@ -887,8 +886,7 @@
         let isDraggingValve = false;
         let shakeIntensity = 0;
         let particles = [];
-        let floorStainList = [], sludgeDrips = [], crampActiveUntil = 0;
-        let stainLayer = null, stainLayerDirty = true, lastStainRebuild = 0, grimeWisps = [], cheekGrime = 0;
+        let crampActiveUntil = 0, cheekGrime = 0;
         let characterState = 'idle';
         let currentPersonality = 'normal';
         let currentSimMode = 'standard'; 
@@ -1774,7 +1772,7 @@
                 if (wasLive && synthOsc1) {
                     const wetNow = getWetAmount(); if (currentGross > 0.45 || wetNow > 0.5) wetTailPops(Math.max(currentGross, wetNow * 0.25));
                     playFartTail(currentGross, lastTailIntensity);
-                    grimeFromFartEnd(currentGross, lastTailIntensity);
+                    noteFartGrimeEnd(currentGross, lastTailIntensity);
                 }
                 currentGross = 0; lastTailIntensity = 0;
                 if (!audioCtx || !synthOsc1) return;
@@ -1932,6 +1930,22 @@
             };
         }
 
+        function makeSoftBlobGrad(r, g, b) {
+            const grad = ctx.createRadialGradient(0, 0, 0.05, 0, 0, 1);
+            grad.addColorStop(0, 'rgba(' + r + ', ' + g + ', ' + b + ', 0.65)');
+            grad.addColorStop(0.5, 'rgba(' + Math.max(0, r - 8) + ', ' + Math.max(0, g - 4) + ', ' + Math.max(0, b - 2) + ', 0.35)');
+            grad.addColorStop(0.85, 'rgba(' + Math.max(0, r - 20) + ', ' + Math.max(0, g - 15) + ', ' + Math.max(0, b - 6) + ', 0.08)');
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            return grad;
+        }
+        function makeIgnitedGrad(r, g, b) {
+            const grad = ctx.createRadialGradient(0, 0, 0.05, 0, 0, 1);
+            grad.addColorStop(0, 'rgba(' + r + ', ' + g + ', ' + b + ', 0.95)');
+            grad.addColorStop(0.3, 'rgba(240, 110, 20, 0.65)');
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            return grad;
+        }
+
         class GasParticle {
             constructor(x, y, pressure, intensity, packetOffset, mouth) {
                 this.x = x + (Math.random() * 20 - 10); 
@@ -1943,7 +1957,7 @@
                     wetScale *= (1.0 - (compuSqueak * 0.12));
                 }
 
-                this.radius = (Math.random() * 16 + 24) * (!blowoutActive ? 3.5 : 2.0) * gasSizeMultiplier * wetScale; 
+                this.radius = Math.max(0.5, (Math.random() * 16 + 24) * (!blowoutActive ? 3.5 : 2.0) * (isFinite(gasSizeMultiplier) ? gasSizeMultiplier : 1) * (isFinite(wetScale) ? wetScale : 1)); 
                 this.growthRate = (0.35 + pr * 0.55) * (0.8 + intensity * 0.5);
                 
                 if (selectedFuelType === 'pureair') {
@@ -1996,6 +2010,7 @@
                     this.g = Math.max(0, Math.min(255, (baseColor.g + shift - Math.floor(wetColorOffset * 0.5)) * dk)); 
                     this.b = Math.max(0, Math.min(255, (baseColor.b + shift - wetColorOffset) * dk));
                 }
+                this.grad = this.isIgnited ? makeIgnitedGrad(this.r, this.g, this.b) : makeSoftBlobGrad(this.r, this.g, this.b);
             }
             update() {
                 this.age++;
@@ -2017,190 +2032,32 @@
                     this.r = Math.max(70, this.r - 8);
                     this.g = Math.max(70, this.g - 8);
                     this.b = Math.max(70, this.b - 8);
+                    this.grad = makeIgnitedGrad(this.r, this.g, this.b);
                 }
             }
             draw() {
-                if (this.alpha <= 0.002) return;
+                if (this.alpha <= 0.002 || this.radius <= 0) return;
                 const t = Math.min(1, this.age / 9);
                 const a = this.alpha * (t * t * (3 - 2 * t));
                 ctx.save();
-                let grad = ctx.createRadialGradient(this.x, this.y, this.radius * 0.05, this.x, this.y, this.radius);
-                if (this.isIgnited) {
-                    grad.addColorStop(0, `rgba(${this.r}, ${this.g}, ${this.b}, ${a * 0.95})`);
-                    grad.addColorStop(0.3, `rgba(240, 110, 20, ${a * 0.65})`);
-                    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                } else {
-                    grad.addColorStop(0, `rgba(${this.r}, ${this.g}, ${this.b}, ${a * 0.65})`);
-                    grad.addColorStop(0.5, `rgba(${Math.max(0, this.r - 8)}, ${Math.max(0, this.g - 4)}, ${Math.max(0, this.b - 2)}, ${a * 0.35})`);
-                    grad.addColorStop(0.85, `rgba(${Math.max(0, this.r - 20)}, ${Math.max(0, this.g - 15)}, ${Math.max(0, this.b - 6)}, ${a * 0.08})`);
-                    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                }
-                ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+                ctx.translate(this.x, this.y);
+                ctx.scale(this.radius, this.radius);
+                ctx.globalAlpha = Math.min(1, Math.max(0, a));
+                ctx.fillStyle = this.grad;
+                ctx.fillRect(-1.02, -1.02, 2.04, 2.04);
                 ctx.restore();
             }
         }
 
-        // ---- Floor grime: poop sludge stains the floor, drips off him and reeks ----
-        const grimeSelectEl = document.getElementById('grime-select');
-        const grimeMode = () => (grimeSelectEl ? grimeSelectEl.value : 'off');
-        function addFloorStain(x, y, wPx, hPx, streak) {
-            const dk = 1 - gasDarken();
-            const lobs = [], dots = [];
-            const lobN = streak ? 0 : 4 + Math.floor(Math.random() * 3);
-            for (let i = 0; i < lobN; i++) lobs.push({ dx: (Math.random() - 0.5) * wPx * 0.75, dy: (Math.random() - 0.5) * hPx * 0.6, w: 0.5 + Math.random() * 0.35, h: 0.5 + Math.random() * 0.35, rot: Math.random() * Math.PI });
-            const dotN = 8 + Math.floor(Math.random() * 10);
-            for (let i = 0; i < dotN; i++) dots.push({ dx: (Math.random() - 0.5) * wPx * 1.7, dy: (Math.random() - 0.5) * hPx * 1.9, r: 1.5 + Math.random() * 3.6 });
-            floorStainList.push({
-                x, y, w: wPx, h: hPx, streak: !!streak, age: 0, lobs, dots,
-                r: Math.round((streak ? 86 : 112) * dk + Math.random() * 12),
-                g: Math.round((streak ? 56 : 72) * dk + Math.random() * 8),
-                b: Math.round((streak ? 30 : 40) * dk + Math.random() * 5),
-                alpha: 0.72 + Math.random() * 0.2
-            });
-            if (floorStainList.length > 150) floorStainList.shift();
-            stainLayerDirty = true;
-        }
-        function playSludgeSplat(vol) {
-            if (!audioCtx || !masterGainNode) return;
-            try {
-                const t = audioCtx.currentTime, o = audioCtx.createOscillator(), f = audioCtx.createBiquadFilter(), g = audioCtx.createGain();
-                o.type = 'sine'; o.frequency.setValueAtTime(120 + Math.random() * 60, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.08);
-                f.type = 'lowpass'; f.frequency.value = 360;
-                g.gain.setValueAtTime(0.001, t); g.gain.linearRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-                o.connect(f); f.connect(g); g.connect(masterGainNode); o.start(t); o.stop(t + 0.14);
-            } catch (err) {}
-        }
-        function grimeFromFartEnd(gross, inten) {
-            if (grimeMode() === 'off') return;
-            const poopHeavy = selectedFuelType === 'poop';
-            cheekGrime = Math.min(1, cheekGrime + (poopHeavy ? 0.14 + Math.random() * 0.08 : gross > 0.85 ? 0.04 : 0));
-            if (!poopHeavy && gross < 0.85) return;
-            if (!poopHeavy && Math.random() > gross * 0.25) return;
-            if (Math.random() > 0.35 + Math.min(0.7, inten * 0.8)) return;
-            const floorY = canvas.height * fellaYBaselineFactor + 4;
-            const n = 2 + Math.floor(Math.random() * 3 + inten * 2);
-            for (let i = 0; i < n; i++) {
-                const spread = (Math.random() - 0.5) * simButtW * (0.55 + inten * 0.25);
-                const big = gasPressure > 78 && Math.random() < 0.5;
-                addFloorStain(simButtX + spread + (big ? (Math.random() - 0.3) * 70 : 0), floorY + Math.random() * 3,
-                    big ? 64 + Math.random() * 90 : 30 + Math.random() * 44,
-                    big ? 15 + Math.random() * 13 : 9 + Math.random() * 9, false);
-            }
-            if (poopHeavy && gasPressure > 82 && grimeMode() === 'full' && Math.random() < 0.4 && sludgeDrips.length < 40) {
-                addFloorStain(simButtX - simButtW * (0.25 + Math.random() * 0.25), floorY, 130 + Math.random() * 100, 14 + Math.random() * 10, true);
-                const m = 10 + Math.floor(Math.random() * 12);
-                for (let i = 0; i < m; i++) {
-                    sludgeDrips.push({
-                        x: simButtX + (Math.random() - 0.5) * simButtW * 1.1, y: simButtY + simButtH * 0.5,
-                        vx: (Math.random() - 0.3) * 3.2, vy: -1.4 + Math.random() * 2.6,
-                        r: 2.5 + Math.random() * 3.5
-                    });
-                }
-                bodyRecoilY = Math.max(bodyRecoilY, 9); buttSpringVelocity += 0.2;
-                const sN = 2 + Math.floor(Math.random() * 2);
-                for (let i = 0; i < sN; i++) setTimeout(() => playSludgeSplat(0.18 + Math.random() * 0.08), 60 + i * 110);
-            }
-        }
-        function ensureStainLayer() {
-            if (!stainLayer || stainLayer.width !== canvas.width || stainLayer.height !== canvas.height) {
-                stainLayer = document.createElement('canvas');
-                stainLayer.width = canvas.width || 1280; stainLayer.height = canvas.height || 760;
-                stainLayerDirty = true;
-            }
-        }
-        function paintStain(g, s) {
-            const fresh = Math.max(0, 1 - s.age / 150);
-            const a = Math.min(0.94, s.alpha + fresh * 0.25);
-            g.save();
-            if (s.streak) {
-                for (let i = 0; i <= 3; i++) {
-                    const k = i / 3;
-                    g.fillStyle = 'rgba(' + s.r + ',' + s.g + ',' + s.b + ',' + (a * (0.6 + 0.4 * (1 - k))).toFixed(3) + ')';
-                    g.beginPath();
-                    g.ellipse(s.x + s.w * (0.5 - k) * 0.9, s.y + (i % 2 ? 2 : -2), Math.max(3, s.w * (0.3 - 0.05 * k)), Math.max(2, s.h * (0.6 + 0.3 * k)), k * 0.25, 0, Math.PI * 2);
-                    g.fill();
-                }
-            } else {
-                g.fillStyle = 'rgba(' + s.r + ',' + s.g + ',' + s.b + ',' + a.toFixed(3) + ')';
-                g.beginPath(); g.ellipse(s.x, s.y, s.w * 0.5, s.h * 0.5, 0, 0, Math.PI * 2); g.fill();
-                for (let i = 0; i < s.lobs.length; i++) {
-                    const L = s.lobs[i];
-                    g.beginPath();
-                    g.ellipse(s.x + L.dx, s.y + L.dy, Math.max(2, s.w * 0.5 * L.w), Math.max(2, s.h * 0.5 * L.h), L.rot, 0, Math.PI * 2);
-                    g.fill();
-                }
-                g.fillStyle = 'rgba(' + Math.max(0, s.r - 34) + ',' + Math.max(0, s.g - 26) + ',' + Math.max(0, s.b - 16) + ',' + (a * 0.8).toFixed(3) + ')';
-                g.beginPath(); g.ellipse(s.x, s.y, Math.max(2, s.w * 0.26), Math.max(2, s.h * 0.34), 0, 0, Math.PI * 2); g.fill();
-            }
-            for (let i = 0; i < s.dots.length; i++) {
-                const D = s.dots[i];
-                g.fillStyle = 'rgba(' + s.r + ',' + s.g + ',' + s.b + ',' + (a * 0.8).toFixed(3) + ')';
-                g.beginPath(); g.arc(s.x + D.dx, s.y + D.dy, D.r, 0, Math.PI * 2); g.fill();
-            }
-            if (fresh > 0) {
-                g.fillStyle = 'rgba(228, 208, 172,' + (fresh * 0.2 * s.alpha).toFixed(3) + ')';
-                g.beginPath(); g.ellipse(s.x - s.w * 0.13, s.y - s.h * 0.16, Math.max(2, s.w * 0.13), Math.max(1.4, s.h * 0.13), -0.5, 0, Math.PI * 2); g.fill();
-            }
-            g.restore();
-        }
-        function renderStainLayer() {
-            ensureStainLayer();
-            const g = stainLayer.getContext('2d');
-            g.clearRect(0, 0, stainLayer.width, stainLayer.height);
-            for (let i = 0; i < floorStainList.length; i++) paintStain(g, floorStainList[i]);
-            stainLayerDirty = false; lastStainRebuild = Date.now();
+        // ---- Grime: poop farts cake his under-cheeks brown, and the guts can seize up ----
+        const crampSelectEl = document.getElementById('cramp-select');
+        const crampMode = () => (crampSelectEl ? crampSelectEl.value : 'on');
+        function noteFartGrimeEnd(gross, inten) {
+            if (selectedFuelType === 'poop') cheekGrime = Math.min(1, cheekGrime + 0.14 + Math.random() * 0.08);
+            else if (gross > 0.85) cheekGrime = Math.min(1, cheekGrime + 0.04);
         }
         function updateGrime() {
-            const floorY = canvas.height * fellaYBaselineFactor + 4;
-            if (grimeMode() === 'off') {
-                cheekGrime = Math.max(0, cheekGrime - 0.002);
-            } else {
-                cheekGrime = Math.max(0, cheekGrime - 0.00002);
-                if (fartVoiceLive && selectedFuelType === 'poop' && sludgeDrips.length < 40 && Math.random() < 0.06) {
-                    sludgeDrips.push({
-                        x: simButtX + (Math.random() - 0.5) * simButtW * 0.25, y: simButtY + simButtH * 0.5,
-                        vx: (Math.random() - 0.5) * 1.2, vy: 0.4, r: 2 + Math.random() * 3
-                    });
-                }
-                if (floorStainList.length > 4 && grimeWisps.length < 12 && Math.random() < 0.04) {
-                    const s = floorStainList[Math.floor(Math.random() * floorStainList.length)];
-                    grimeWisps.push({ x: s.x + (Math.random() - 0.5) * s.w * 0.6, y: s.y - 4, r: 7 + Math.random() * 11, vx: (Math.random() - 0.5) * 0.3 + gasWindNow * 0.4, vy: -(0.22 + Math.random() * 0.25), alpha: 0.13 + Math.random() * 0.07 });
-                }
-            }
-            for (let i = sludgeDrips.length - 1; i >= 0; i--) {
-                const d = sludgeDrips[i];
-                d.vy += 0.34; d.x += d.vx; d.y += d.vy; d.vx *= 0.99;
-                if (d.y >= floorY) {
-                    addFloorStain(d.x, floorY + Math.random() * 3, d.r * (5 + Math.random() * 5), d.r * (2.2 + Math.random() * 1.6), false);
-                    if (grimeMode() === 'full' && Math.random() < 0.35) playSludgeSplat(Math.min(0.2, d.r * 0.035));
-                    sludgeDrips.splice(i, 1);
-                } else if (d.y > canvas.height + 40 || d.x < -60 || d.x > canvas.width + 60) sludgeDrips.splice(i, 1);
-            }
-            for (let i = grimeWisps.length - 1; i >= 0; i--) {
-                const w = grimeWisps[i];
-                w.y += w.vy; w.x += w.vx; w.r += 0.12; w.alpha *= 0.986;
-                if (w.alpha < 0.02) grimeWisps.splice(i, 1);
-            }
-            for (let i = floorStainList.length - 1; i >= 0; i--) {
-                const s = floorStainList[i];
-                s.age++; s.alpha -= 0.000028;
-                if (s.age < 420 && !s.streak) { s.w += 0.055; s.h += 0.02; }
-                if (s.alpha <= 0.02) { floorStainList.splice(i, 1); stainLayerDirty = true; }
-            }
-            if (stainLayerDirty || Date.now() - lastStainRebuild > 2000) renderStainLayer();
-        }
-        function drawGrime() {
-            if (stainLayer) ctx.drawImage(stainLayer, 0, 0);
-            ctx.fillStyle = 'rgba(74, 50, 27, 0.85)';
-            for (let i = 0; i < sludgeDrips.length; i++) {
-                const d = sludgeDrips[i];
-                ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill();
-            }
-            for (let i = 0; i < grimeWisps.length; i++) {
-                const w = grimeWisps[i];
-                ctx.fillStyle = 'rgba(104, 96, 48, ' + w.alpha.toFixed(3) + ')';
-                ctx.beginPath(); ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2); ctx.fill();
-            }
+            cheekGrime = Math.max(0, cheekGrime - 0.00002);
         }
 
         function syncGasColorToFuel() {
@@ -2639,9 +2496,9 @@
             
             if (valveState === -1 || isHoldingButt) {
                 let power = valveState === -1 ? f_intensity : 0.72;
-                fogAccumulation = Math.min(0.88, fogAccumulation + (power * 0.009)); 
+                fogAccumulation = Math.min(0.5, fogAccumulation + (power * 0.006)); 
             } else {
-                fogAccumulation = Math.max(0, fogAccumulation - 0.0006); 
+                fogAccumulation = Math.max(0, fogAccumulation - 0.0022); 
             }
 
             let pr = gasPressure / 100; visualPressureFactor = customSmoothEase(visualPressureFactor, pr, 0.045, 1.0);
@@ -3064,7 +2921,7 @@
             let c = gasColors[currentGasColor].tint;
             if (ignitionSparkActive && selectedFuelType !== 'pureair') c = "240, 100, 20"; 
             
-            let totalBoxAlpha = Math.min(0.78, (fogAccumulation * 0.72) + (gasTintAlpha * 0.25));
+            let totalBoxAlpha = Math.min(0.42, (fogAccumulation * 0.6) + (gasTintAlpha * 0.25));
             ctx.fillStyle = `rgba(${c}, ${totalBoxAlpha})`;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
@@ -3075,8 +2932,8 @@
                     let cloudRadius = (280 + (i * 60)) * fogAccumulation;
                     
                     let cloudGrad = ctx.createRadialGradient(cloudDriftX, cloudDriftY, cloudRadius * 0.01, cloudDriftX, cloudDriftY, cloudRadius);
-                    cloudGrad.addColorStop(0, `rgba(${c}, ${fogAccumulation * 0.40})`);
-                    cloudGrad.addColorStop(0.5, `rgba(${c}, ${fogAccumulation * 0.20})`);
+                    cloudGrad.addColorStop(0, `rgba(${c}, ${fogAccumulation * 0.2})`);
+                    cloudGrad.addColorStop(0.5, `rgba(${c}, ${fogAccumulation * 0.1})`);
                     cloudGrad.addColorStop(1, 'rgba(0,0,0,0)');
                     
                     ctx.fillStyle = cloudGrad; ctx.beginPath(); ctx.arc(cloudDriftX, cloudDriftY, cloudRadius, 0, Math.PI * 2); ctx.fill();
@@ -3304,7 +3161,7 @@
 
             // Gut cramps (biohazard): the guts churn hard, then force a fat release
             setInterval(() => {
-                if (grimeMode() !== 'full' || document.hidden || Date.now() < crampActiveUntil) return;
+                if (crampMode() === 'off' || document.hidden || Date.now() < crampActiveUntil) return;
                 if ((selectedFuelType !== 'poop' && selectedFuelType !== 'sulfur') || gasPressure < 58 || busy()) return;
                 if (Math.random() > ((gasPressure - 58) / 42) * (selectedFuelType === 'poop' ? 0.35 : 0.18)) return;
                 const hold = 900 + Math.random() * 1300;
@@ -3452,7 +3309,7 @@
             shakeEl.addEventListener('input', () => { shakeScale = parseFloat(shakeEl.value); });
             lingerEl.addEventListener('change', () => { gasLingerFactor = { short: 1.7, normal: 1, long: 0.5 }[lingerEl.value] || 1; });
             document.getElementById('reset-fella-btn').addEventListener('click', () => {
-                gasPressure = 15; burpPressure = 0; burpAutoUntil = 0; stopBurpVoice(); particles.length = 0; floorStainList.length = 0; sludgeDrips.length = 0; grimeWisps.length = 0; cheekGrime = 0; stainLayerDirty = true;  valveState = 0; f_intensity = 0; isHoldingButt = false; isAutoPumpingActive = false;
+                gasPressure = 15; burpPressure = 0; burpAutoUntil = 0; stopBurpVoice(); particles.length = 0; cheekGrime = 0;  valveState = 0; f_intensity = 0; isHoldingButt = false; isAutoPumpingActive = false;
                 reactionFace = null; reactionUntil = 0; try { stopFartSound(); } catch (e) {}
             });
             const camEl = document.getElementById('layout-cam'), uiEl = document.getElementById('layout-ui'), charEl = document.getElementById('layout-char');
@@ -4001,7 +3858,6 @@
             ctx.save(); ctx.translate(canvas.width * 0.5 + currentShakeX, canvas.height * fellaYBaselineFactor + currentShakeY);
             ctx.scale(cameraZoom * viewFit * charScale, cameraZoom * viewFit * charScale); ctx.translate(-canvas.width * 0.5, -canvas.height * fellaYBaselineFactor);
             
-            drawGrime();
             for (let i = 0; i < particles.length; i++) if (!particles[i].front) particles[i].draw();
             drawFella();
             for (let i = 0; i < particles.length; i++) if (particles[i].front) particles[i].draw();
