@@ -1135,83 +1135,6 @@
         const SURPRISE_AFTER_FACES = ["⊙ _ ⊙", "◎ _ ◎", "° _ °"];
         const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-        // Cartoon fart-video juice: popping word bursts, flies around the stink, sweat drops while straining
-        let toonFx = [];
-        const TOON_WORDS = {
-            hard: ['PBBBT!', 'BRAAP!', 'THBBBT!', 'BRRRT!!'],
-            mid:  ['FRRRP!', 'PRRT!', 'PLERP!'],
-            soft: ['toot', 'pffft'],
-            wet:  ['BLRPH!', 'SPLRRP!'],
-            startle: ['!!', '?!', 'PBBT?!']
-        };
-        function isFoulGasNow() {
-            return selectedFuelType === 'poop' || selectedFuelType === 'sulfur' || currentGasColor === 'brown' ||
-                   currentGasColor === 'sulfurDark' || currentGasColor === 'rancid' || liveGasMix.stink > 0.4;
-        }
-        function toonWord(text, x, y, size, color, life) {
-            toonFx.push({ type: 'word', text: text, x: x, y: y, size: size, color: color || '#27ae60',
-                          born: Date.now(), life: life || 1100, rot: (Math.random() - 0.5) * 0.25, phase: Math.random() * 6.28, rise: 55 + Math.random() * 30 });
-        }
-        function fartWord(intensity) {
-            const pool = compuWetness > 0.5 ? TOON_WORDS.wet : (intensity > 0.6 ? TOON_WORDS.hard : (intensity > 0.35 ? TOON_WORDS.mid : TOON_WORDS.soft));
-            toonWord(pool[Math.floor(Math.random() * pool.length)],
-                     simButtX + simButtW * 0.5 + 40 + Math.random() * 40, simButtY - 30 - Math.random() * 40,
-                     28 + intensity * 36, intensity > 0.6 ? '#e67e22' : '#27ae60');
-        }
-        function toonFuelFlies() {
-            const live = toonFx.filter((f) => f.type === 'fly').length;
-            const target = Math.min(5, 2 + Math.round(liveGasMix.stink * 2));
-            for (let k = live; k < target; k++) {
-                toonFx.push({ type: 'fly', ax: simButtX + (Math.random() - 0.3) * 90, ay: simButtY - 20 - Math.random() * 50,
-                              rx: 30 + Math.random() * 45, ry: 22 + Math.random() * 30, px: Math.random() * 6.28, py: Math.random() * 6.28,
-                              born: Date.now(), life: 11000 + Math.random() * 5000 });
-            }
-        }
-        function toonSweat(dir) {
-            toonFx.push({ type: 'sweat', x: simHeadX + dir * 14, y: simHeadY - 10, vx: dir * (30 + Math.random() * 40), vy: -60 - Math.random() * 40,
-                          r: 3 + Math.random() * 2.5, born: Date.now(), life: 700 + Math.random() * 300 });
-        }
-        function toonUpdateDraw() {
-            const now = Date.now();
-            for (let i = toonFx.length - 1; i >= 0; i--) {
-                const f = toonFx[i], t = (now - f.born) / f.life;
-                if (t >= 1) { toonFx.splice(i, 1); continue; }
-                if (f.type === 'word') {
-                    const pop = t < 0.15 ? 0.4 + (t / 0.15) * 0.85 : 1.25 - 0.25 * Math.min(1, Math.max(0, (t - 0.15) / 0.35));
-                    ctx.save();
-                    ctx.translate(f.x, f.y - t * f.rise);
-                    ctx.rotate(f.rot + Math.sin(now / 55 + f.phase) * 0.05);
-                    ctx.scale(pop, pop);
-                    ctx.globalAlpha = t > 0.65 ? 1 - (t - 0.65) / 0.35 : 1;
-                    ctx.font = 'bold ' + f.size + 'px sans-serif';
-                    ctx.textAlign = 'center'; ctx.lineJoin = 'round';
-                    ctx.lineWidth = Math.max(3, f.size / 7); ctx.strokeStyle = '#fffdf5';
-                    ctx.strokeText(f.text, 0, 0);
-                    ctx.fillStyle = f.color; ctx.fillText(f.text, 0, 0);
-                    ctx.restore();
-                } else if (f.type === 'fly') {
-                    const age = now - f.born;
-                    const fade = Math.min(1, age / 500) * Math.min(1, (f.life - age) / 900);
-                    if (fade <= 0) { toonFx.splice(i, 1); continue; }
-                    const bx = f.ax + Math.sin(now / 260 + f.px) * f.rx + Math.sin(now / 91 + f.px * 2) * 7;
-                    const by = f.ay + Math.cos(now / 210 + f.py) * f.ry + Math.cos(now / 77 + f.py) * 5;
-                    ctx.save(); ctx.globalAlpha = fade * 0.9; ctx.translate(bx, by);
-                    const wing = Math.sin(now / 18 + f.px) * 3;
-                    ctx.fillStyle = '#1c1c1c';
-                    ctx.beginPath(); ctx.arc(0, 0, 2.6, 0, 6.2832); ctx.fill();
-                    ctx.strokeStyle = 'rgba(30,30,30,0.75)'; ctx.lineWidth = 1.6;
-                    ctx.beginPath(); ctx.moveTo(0, -1); ctx.lineTo(-6, -4 - wing); ctx.moveTo(0, -1); ctx.lineTo(6, -4 - wing); ctx.stroke();
-                    ctx.restore();
-                } else if (f.type === 'sweat') {
-                    ctx.save(); ctx.globalAlpha = Math.max(0, 1 - t);
-                    ctx.translate(f.x + f.vx * t, f.y + (f.vy * t + 340 * t * t));
-                    ctx.fillStyle = '#9ecdea';
-                    ctx.beginPath(); ctx.arc(0, 0, f.r * (1 - t * 0.4), 0, 6.2832); ctx.fill();
-                    ctx.restore();
-                }
-            }
-        }
-
         function startFartSession(now) {
             lastFartStartMs = now;
             const gap = now - lastFartEndTime;
@@ -1246,10 +1169,6 @@
                             personality: personality, startPressure: gasPressure, startTime: now, intSum: 0, frames: 0, accentFace: null, accentUntil: 0,
                             nextAccentAt: now + (surprised ? 1600 : 700) + Math.random() * 1100 };
 
-            fartWord(startPower);
-            if (surprised) toonWord(TOON_WORDS.startle[Math.floor(Math.random() * TOON_WORDS.startle.length)], simHeadX + 26 + Math.random() * 22, simHeadY - 46, 34, '#e74c3c', 900);
-            if (isFoulGasNow()) toonFuelFlies();
-
             // Every fart gets its own wobble/flutter character
             fartChar = {
                 wobbleRate: 3 + Math.random() * 5,
@@ -1257,6 +1176,8 @@
                 flutterRate: 11 + Math.random() * 10,
                 flutterPhase: Math.random() * Math.PI * 2
             };
+            buttSpringVelocity += 0.18 + startPower * 0.22;
+            bellySpringVelocity -= 0.06;
         }
 
         function updateFartSession() {
@@ -1276,7 +1197,6 @@
                 fartSession.active = false;
                 lastFartEndTime = lastFartingMoment;
                 postFartReaction(fartSession, fartSession.startPressure - gasPressure);
-                if (isFoulGasNow() && Math.random() < 0.8) toonFuelFlies();
             }
         }
 
@@ -1577,7 +1497,7 @@
                 synthOsc2 = audioCtx.createOscillator(); synthOsc2.type = 'triangle'; synthOsc2.frequency.setValueAtTime(targetBaseFreq * 0.5, ct);
                 synthOscSub = audioCtx.createOscillator(); synthOscSub.type = 'sine'; synthOscSub.frequency.setValueAtTime(targetBaseFreq * 0.25, ct);
 
-                synthSubGain = audioCtx.createGain(); synthSubGain.gain.setValueAtTime((!blowoutActive ? 0.50 : 0.35) * compuBass, ct);
+                synthSubGain = audioCtx.createGain(); synthSubGain.gain.setValueAtTime((!blowoutActive ? 0.50 : 0.35) * compuBass * 1.4, ct);
                 synthMod = audioCtx.createOscillator(); synthMod.type = 'sine'; synthMod.frequency.setValueAtTime(vibrationRate, ct);
                 
                 synthModGain = audioCtx.createGain(); synthModGain.gain.setValueAtTime(targetBaseFreq * (!blowoutActive ? 0.65 : 0.45), ct);
@@ -1658,7 +1578,7 @@
                 synthOsc1.frequency.value = targetBaseFreq;
                 synthOsc2.frequency.value = targetBaseFreq * 0.5;
                 if (synthOscSub) synthOscSub.frequency.value = targetBaseFreq * 0.25;
-                if (synthSubGain) synthSubGain.gain.value = (!blowoutActive ? 0.50 : 0.35) * compuBass * (1 + gross * 0.5) * (1 + graphFx.rumble * 1.2) * (1 - 0.7 * small);
+                if (synthSubGain) synthSubGain.gain.value = (!blowoutActive ? 0.50 : 0.35) * compuBass * 1.35 * (1 + gross * 0.5) * (1 + graphFx.rumble * 1.2) * (1 - 0.7 * small);
                 
                 if (synthOscSqueak && synthSqueakGain && muffleSelect.value !== 'muffled') {
                     let liveSqueakHarmonic = targetBaseFreq * (3.5 + compuSqueak * 3.5);
@@ -2469,11 +2389,9 @@
                     if (currentSimMode === 'fart_expand') { 
                         gasPressure = Math.min(100, gasPressure + 0.95); 
                     } else { 
-                        gasPressure = Math.max(0, gasPressure - (drainRate * (!blowoutActive ? 2.2 : 1.0))); 
+                        gasPressure = Math.max(0, gasPressure - (drainRate * (!blowoutActive ? 1.76 : 0.8))); 
                     }
                     const fh = Math.max(0, Math.min(1, 0.72 + graphFx.fartPower)); startFartSound(fh); updateFartSound(fh); shakeIntensity = (!blowoutActive ? 4.5 : 2.2) * 0.7;
-                    if (fartSession.active && fartSession.frames % 55 === 0) fartWord(fh);
-                    if (fh > 0.62 && Math.random() < 0.12) toonSweat(Math.random() < 0.5 ? -1 : 1);
                     
                     let adaptiveEmissionInterval = Math.max(2, Math.floor(5 * compuSlowness));
                     if (++buttHoldFartTicker % adaptiveEmissionInterval === 0) injectFartPuffPacket(0.72, gasPressure);
@@ -2594,7 +2512,7 @@
 
             const baseX = canvas.width * 0.5; 
             let collectiveShake = Math.max(shakeIntensity, isHoldingButt ? 1.8 : 0) * shakeScale;
-            let wobble = Math.sin(Date.now() * 0.028) * (collectiveShake * 0.015);
+            let wobble = Math.sin(Date.now() * 0.028) * (collectiveShake * 0.024);
 
             const fartDriveNow = isHoldingButt ? 0.72 : (valveState === -1 ? f_intensity : 0);
             fartVisBlend += (fartDriveNow - fartVisBlend) * 0.15;
@@ -2652,7 +2570,7 @@
                 wetJitter += Math.sin(Date.now() * 0.45) * 1.5 * compuSqueak * currentFartMod;
             }
             
-            let activeGluteRipple = (valveState === -1 || isHoldingButt) ? (Math.sin(Date.now() * 0.055) * 4.5 * currentFartMod * shakeScale) + wetJitter * shakeScale : 0; 
+            let activeGluteRipple = (valveState === -1 || isHoldingButt) ? (Math.sin(Date.now() * 0.055) * 6.2 * currentFartMod * shakeScale) + wetJitter * shakeScale : 0; 
             if (!blowoutActive && activeGluteRipple !== 0) activeGluteRipple *= 1.8;
             activeGluteRipple += wfVis.fastWave * 1.9 * compuFlutter * fartVisBlend * (0.5 + wfVis.tail);
 
@@ -3836,7 +3754,6 @@
             for (let i = 0; i < particles.length; i++) if (!particles[i].front) particles[i].draw();
             drawFella();
             for (let i = 0; i < particles.length; i++) if (particles[i].front) particles[i].draw();
-            toonUpdateDraw();
             ctx.restore(); 
 
             
