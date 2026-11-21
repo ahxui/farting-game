@@ -981,13 +981,13 @@
             ACCENT_FACES.normal.clench.push(FACE.worriedWavy); ACCENT_FACES.angry.clench.push(FACE.lidWavy); ACCENT_FACES.normal.bearDown.push(FACE.lid); ACCENT_FACES.angry.bearDown.push(FACE.lidFlat);
         }
         const EXHALE_FACES = {
-            normal: ["- o -", "˘ o ˘"], sad: ["- o -", "╥ o ╥"], angry: ["≖ o ≖", "◉ o ◉"], loving: ["⊖ o ⊖", "◉ o ◉", "◕ ³ ◕", "˘ ³ ˘"]
+            normal: ["- o -", "˘ o ˘"], sad: ["- o -", "╥ o ╥"], angry: ["≖ o ≖", "◉ o ◉"], loving: ["◕ o ◕", "● o ●", "◕ ³ ◕", "˘ ³ ˘"]
         };
         const GROAN_FACES = {
-            normal: ["- ≈ -", "˘ ≈ ˘", "- _ -"], sad: ["╥ ≈ ╥", "- ≈ -"], angry: ["◉ ≈ ◉", "≖ _ ≖"], loving: ["u ω u", "⊖ ≈ ⊖", "≖ ≈ ≖", "˘ ≈ ˘"]
+            normal: ["- ω -", "˘ ω ˘", "- _ -"], sad: ["╥ ω ╥", "- ω -"], angry: ["◉ ω ◉", "≖ _ ≖"], loving: ["u ω u", "◕ ω ◕", "◉ ω ◉", "˘ ω ˘"]
         };
         const STRAIN_FACES = {
-            normal: ["> ≈ <", "≧ ≈ ≦"], sad: ["╥ ≈ ╥", "> ≈ <"], angry: ["◣ ≈ ◢", "> ≈ <"], loving: ["u ω u", "⊖ ≈ ⊖", "> ≈ <", "◉ ≈ ◉"]
+            normal: ["> ω <", "≧ ω ≦"], sad: ["╥ ω ╥", "> ω <"], angry: ["◣ ≈ ◢", "> ≈ <"], loving: ["u ω u", "◕ ω ◕", "> ω <", "◉ ω ◉"]
         };
         function playReactionSequence(stages) {
             const token = ++reactionToken; let t = 0;
@@ -1046,10 +1046,10 @@
 
         // Face pairs: [lighter push, full push]. One pair is rolled per fart and held until it ends.
         const FART_FACE_PAIRS = {
-            normal: [["\u2022 _ \u2022", "> \u2248 <"], ["\u25d4 _ \u25d4", "> \u2248 <"], ["- _ -", "> \u2248 <"], ["\u2022 \u2248 \u2022", "\u2267 \u2248 \u2266"], ["\u2686 _ \u2686", "\u2299 \u2248 \u2299"], ["\u2022 \u2248 \u2022", "> _ <"], ["\u00b0 _ \u00b0", "\u25ce \u2248 \u25ce"], ["* _ *", "\u00d7 \u2248 \u00d7"], ["@ _ @", "> \u2248 <"], ["x _ x", "> \u2248 <"]],
-            sad:    [["\u2565 _ \u2565", "> \u2248 <"], ["\u2022 \u2248 \u2022", "\u2565 \u2248 \u2565"], ["\u2686 \u2248 \u2686", "\u2565 \u2248 \u2565"], ["\uff65 \u2248 \uff65", "> \u2248 <"], ["\u2299 \u2248 \u2299", "\u2565 \u2248 \u2565"], ["\u2565 \u2248 \u2565", "\u00d7 \u2248 \u00d7"], ["\u2299 \u2248 \u2299", "> \u2248 <"], ["x \u2248 x", "\u2565 _ \u2565"]],
-            angry:  [["\u25c9 _ \u25c9", "\u0482 \u2261 \u0482"], ["\u2022 \u2248 \u2022", "\u2256 \u2261 \u2256"], ["\u2014 \u03d6 \u2014", "> \u2261 <"], ["- \u2248 -", "\u25e3 \u2261 \u25e2"], ["\u00af \u2248 \u00af", "> \u2248 <"], ["\u0482 _ \u0482", "\u2267 \u2248 \u2266"], ["\u25e3 _ \u25e2", "> \u2248 <"]],
-            loving: [["⊖ ω ⊖", "≖ ▽ ≖"], ["≖ ω ≖", "≖ ▽ ≖"], ["¬ ‿ ¬", "¬ ω ¬"], ["◕ ω ◕", "◕ ▽ ◕"], ["◉ ω ◉", "◉ ▽ ◉"], ["≖ ‿ ≖", "≖ ≈ ≖"], ["u ω u", "u ▽ u"], ["˘ ³ ˘", "◕ ³ ◕"], ["◕ o ◕", "◕ ▽ ◕"], ["˘ ‿ ˘", "≖ ω ≖"]]
+            normal: [["\u2022 _ \u2022", "> ≈ <"], ["\u25d4 _ \u25d4", "> ≈ <"], ["- _ -", "> ≈ <"], ["\u2022 ≈ \u2022", "\u2267 ≈ \u2266"], ["\u2686 _ \u2686", "\u2299 ≈ \u2299"], ["\u2022 ≈ \u2022", "> _ <"], ["\u00b0 _ \u00b0", "\u25ce ≈ \u25ce"], ["* _ *", "\u00d7 ≈ \u00d7"], ["@ _ @", "> ≈ <"], ["x _ x", "> ≈ <"]],
+            sad:    [["\u2565 _ \u2565", "> ≈ <"], ["\u2022 ≈ \u2022", "\u2565 ≈ \u2565"], ["\u2686 ≈ \u2686", "\u2565 ≈ \u2565"], ["\uff65 ≈ \uff65", "> ≈ <"], ["\u2299 ≈ \u2299", "\u2565 ≈ \u2565"], ["\u2565 ≈ \u2565", "\u00d7 ≈ \u00d7"], ["\u2299 ≈ \u2299", "> ≈ <"], ["x ≈ x", "\u2565 _ \u2565"]],
+            angry:  [["◉ _ ◉", "\u0482 ≡ \u0482"], ["\u2022 ≈ \u2022", "\u2256 ≡ \u2256"], ["— ϖ —", "> ≡ <"], ["- ≈ -", "\u25e3 ≡ \u25e2"], ["\u00af ≈ \u00af", "> ≈ <"], ["\u0482 _ \u0482", "\u2267 ≈ \u2266"], ["\u25e3 _ \u25e2", "> ≈ <"]],
+            loving: [["◕ ω ◕", "◕ ▽ ◕"], ["● ω ●", "◉ ▽ ◉"], ["u ω u", "u ω u"], ["◕ ‿ ◕", "◕ ω ◕"], ["˘ ³ ˘", "◕ ³ ◕"], ["◕ o ◕", "◕ ▽ ◕"], ["◉ ω ◉", "◉ ▽ ◉"], ["¬ ‿ ¬", "¬ ω ¬"], ["— ‿ —", "u ▽ u"], ["˘ ‿ ˘", "◕ ω ◕"]]
         };
 
         // Reactions to the gas itself: which mood, and how likely it is to show up on a given fart
@@ -1065,22 +1065,22 @@
             embarrassed: {
                 default: [["˘ _ ˘", "> ≈ <"], ["ˊ _ ˋ", "> ≈ <"], ["- ≈ -", "> ≈ <"], ["• ≈ •", "˘ ≈ ˘"]],
                 angry:   [["˘ ϖ ˘", "≖ ≡ ≖"], ["◉ ≈ ◉", "> ≡ <"]],
-                loving:  [['u ‿ u', '≖ ‿ ≖'], ['⊖ ω ⊖', '⊖ ≈ ⊖']]
+                loving:  [['u ‿ u', '◕ ‿ ◕'], ['◕ ω ◕', '◕ ω ◕']]
             },
             grossed: {
                 default: [["- ≈ -", "× ≈ ×"], ["◔ ≈ ◔", "> ≈ <"], ["⊙ ≈ ⊙", "× ≈ ×"]],
                 angry:   [["◉ ≈ ◉", "× ≡ ×"], ["— ≈ —", "> ≡ <"]],
-                loving:  [['u ≈ u', '⊖ ≈ ⊖'], ['⊖ _ ⊖', '≖ ≈ ≖']]
+                loving:  [['u ω u', '◕ ω ◕'], ['◕ _ ◕', '◕ ω ◕']]
             },
             sickly: {   // foul gas: washed out, disgusted, barely holding on
                 default: [["- ≈ -", "× ≈ ×"], ["@ _ @", "> ≈ <"], ["● ≈ ●", "× _ ×"], ["° _ °", "u ≈ u"], ["— ≈ —", "X _ X"], ["* _ *", "× ≈ ×"]],
                 angry:   [["◉ ≈ ◉", "◉ ≈ ◉"], ["⊖ _ ⊖", "> ≈ <"], ["° ≈ °", "✖ _ ✖"]],
-                loving:  [['u ≈ u', 'u ω u'], ['⊖ ≈ ⊖', '≖ ω ≖'], ['◉ ≈ ◉', '¬ ‿ ¬']]
+                loving:  [['u ω u', 'u ω u'], ['◕ ω ◕', '◕ ω ◕'], ['◉ ω ◉', '¬ ‿ ¬']]
             },
             alarmed: {
                 default: [["⊙ ≈ ⊙", "◎ ≈ ◎"], ["◔ _ ◔", "⊙ ≈ ⊙"]],
                 angry:   [["◉ ≈ ◉", "◎ ≡ ◎"]],
-                loving:  [['⊖ _ ⊖', '◉ _ ◉']]
+                loving:  [['◕ _ ◕', '◉ _ ◉']]
             },
             relaxed: {
                 default: [["- _ -", "- ‿ -"], ["• _ •", "• ‿ •"]],
@@ -1088,11 +1088,11 @@
             }
         };
         const MOOD_AFTER_FACES = {
-            embarrassed: { default: "˘ _ ˘", angry: "˘ ϖ ˘", loving: "≖ ‿ ≖" },
+            embarrassed: { default: "˘ _ ˘", angry: "˘ ϖ ˘", loving: "u ‿ u" },
             grossed:     { default: "- ≈ -", angry: "ب ≈ ب" },
-            sickly:      { default: "u _ u", angry: "ب ω ب", sad: "╥ ω ╥", loving: "≖ ρ ≖" },
+            sickly:      { default: "u _ u", angry: "ب ω ب", sad: "╥ ω ╥", loving: "u ω u" },
             alarmed:     { default: "⊙ _ ⊙" },
-            relaxed:     { default: "- _ -", loving: "≖ ρ ≖" }
+            relaxed:     { default: "- _ -", loving: "◕ ω ◕" }
         };
 
         function getGasMood() {
@@ -1109,19 +1109,19 @@
         }
 
         const SURPRISE_FACE_PAIRS = {
-            generic: [["⊙ _ ⊙", "◎ ≈ ◎"], ["• _ •", "⊙ _ ⊙"], ["⚆ _ ⚆", "⊙ ≈ ⊙"], ["◔ ▃ ◔", "◎ ≈ ◎"]],
-            big:     [["⊙ _ ⊙", "◎ _ ◎"], ["◎ _ ◎", "◉ ≈ ◉"], ["⚆ _ ⚆", "⊙ ≈ ⊙"], ["◔ _ ◔", "◎ ≈ ◎"]],
+            generic: [["⊙ _ ⊙", "◎ ≈ ◎"], ["• _ •", "⊙ _ ⊙"], ["◐ _ ◐", "⊙ ≈ ⊙"], ["◔ ▃ ◔", "◎ ≈ ◎"]],
+            big:     [["⊙ _ ⊙", "◎ _ ◎"], ["◎ _ ◎", "◉ ≈ ◉"], ["◐ _ ◐", "⊙ ≈ ⊙"], ["◔ _ ◔", "◎ ≈ ◎"]],
             normal: [],
             sad:    [["⊙ ≈ ⊙", "◎ ≈ ◎"]],
             angry:  [["◉ ≈ ◉", "◎ ≈ ◎"]],
-            loving: [["⊖ ω ⊖", "⊖ _ ⊖"], ["◉ ω ◉", "◉ _ ◉"], ["◕ ‿ ◕", "≖ ▽ ≖"]]
+            loving: [["◕ ω ◕", "◕ _ ◕"], ["◉ ω ◉", "◉ _ ◉"], ["◕ ‿ ◕", "◕ ▽ ◕"]]
         };
         // Short-lived effort faces layered on top of the fart's main face
         const ACCENT_FACES = {
             normal: { blowing: ["- o -", "˘ o ˘"],   clench: ["> ≈ <", "≧ _ ≦", "> _ <"], bearDown: ["≖ ≈ ≖", "- ≈ -"] },
             sad:    { blowing: ["╥ o ╥", "- o -"],   clench: ["> ≈ <", "╥ ≈ ╥"],          bearDown: ["- ≈ -", "• ≈ •"] },
             angry:  { blowing: ["≖ o ≖", "◉ o ◉"],   clench: ["◣ ≈ ◢", "> ≡ <"],          bearDown: ["≖ ≈ ≖", "◉ ≈ ◉"] },
-            loving: { blowing: ["⊖ o ⊖", "◉ o ◉", "◕ ³ ◕", "˘ ³ ˘"], clench: ["≖ ‿ ≖", "⊖ ≈ ⊖", "◕ ³ ◕"], bearDown: ["≖ ▽ ≖", "⊖ ≈ ⊖", "≖ ω ≖"] }
+            loving: { blowing: ["◕ o ◕", "● o ●", "◕ ³ ◕", "˘ ³ ˘"],   clench: ["◕ ‿ ◕", "◕ ω ◕", "◕ ³ ◕"],            bearDown: ["◕ ▽ ◕", "◕ ω ◕", "◉ ω ◉"] }
         };
         function pickAccentFace(personality) {
             const power = valveState === -1 ? f_intensity : 0.72;
@@ -2730,66 +2730,66 @@
                     else if (p > 0.55) fartSession.hard = true;
                     face = fartSession.hard ? fartSession.pair[1] : fartSession.pair[0];
                 } else if (p <= 0.33) {
-                    if (currentPersonality === 'sad') face = "\u2022 \u2248 \u2022";
-                    else if (currentPersonality === 'angry') face = "\u2022 \u2248 \u2022";
-                    else if (currentPersonality === 'loving') face = "\u2256 \u03c9 \u2256";
-                    else face = onFoulGas() ? "\u00b0 \u2248 \u00b0" : "\u2022 _ \u2022";
+                    if (currentPersonality === 'sad') face = "\u2022 ≈ \u2022";
+                    else if (currentPersonality === 'angry') face = "\u2022 ≈ \u2022";
+                    else if (currentPersonality === 'loving') face = "◕ ω ◕";
+                    else face = onFoulGas() ? "\u00b0 ≈ \u00b0" : "\u2022 _ \u2022";
                 } else if (p <= 0.66) {
-                    if (currentPersonality === 'sad') face = "\u2299 \u2248 \u2299";
-                    else if (currentPersonality === 'angry') face = "\u2022 \u0300 \u2248 \u2022 \u0301";
-                    else if (currentPersonality === 'loving') face = "\u2296 \u03c9 \u2296";
-                    else face = onFoulGas() ? "\u25cf \u2248 \u25cf" : "\u0300 \u2248 \u0301";
+                    if (currentPersonality === 'sad') face = "\u2299 ≈ \u2299";
+                    else if (currentPersonality === 'angry') face = "\u2022 \u0300 ≈ \u2022 \u0301";
+                    else if (currentPersonality === 'loving') face = "◕ ω ◕";
+                    else face = onFoulGas() ? "\u25cf ≈ \u25cf" : "\u0300 ≈ \u0301";
                 } else {
                     if (blowoutActive) {
-                        if (currentPersonality === 'normal') face = onFoulGas() ? "\u25cf \u2248 \u25cf" : "\u00b4 \u25bd `";
-                        else if (currentPersonality === 'sad') face = "\u2565 \u2248 \u2565";
-                        else if (currentPersonality === 'angry') face = "\u0300 \u2261 \u0301";
-                        else if (currentPersonality === 'loving') face = "\u2256 \u25bd \u2256";   // totally blissed out
+                        if (currentPersonality === 'normal') face = onFoulGas() ? "\u25cf ≈ \u25cf" : "\u00b4 \u25bd `";
+                        else if (currentPersonality === 'sad') face = "\u2565 ≈ \u2565";
+                        else if (currentPersonality === 'angry') face = "\u0300 ≡ \u0301";
+                        else if (currentPersonality === 'loving') face = "◕ ω ◕";   // totally blissed out
                     } else {
-                        if (currentPersonality === 'sad') face = "> \u2248 <";
-                        else if (currentPersonality === 'angry') face = "\u0482 \u0300 \u2261 \u0301 \u0482";
-                        else if (currentPersonality === 'loving') face = "\u2256 \u25bd \u2256";
-                        else face = onFoulGas() ? "\u00d7 \u2248 \u00d7" : "\u0300 \u0434 \u0301";
+                        if (currentPersonality === 'sad') face = "> ≈ <";
+                        else if (currentPersonality === 'angry') face = "\u0482 \u0300 ≡ \u0301 \u0482";
+                        else if (currentPersonality === 'loving') face = "◕ ω ◕";
+                        else face = onFoulGas() ? "\u00d7 ≈ \u00d7" : "\u0300 \u0434 \u0301";
                     }
                 }
             }
             else if (fartEndDelayTimer > 0) {
                 if (fartSession.after) face = fartSession.after;
-                else if (currentPersonality === 'loving') face = "\u2256 \u03c1 \u2256";
+                else if (currentPersonality === 'loving') face = "≖ ω ≖";
                 else if (currentPersonality === 'sad') face = "\uff65 _ \uff65";
-                else if (currentPersonality === 'angry') face = "\u2014 \u2248 \u2014";
+                else if (currentPersonality === 'angry') face = "— ≈ —";
                 else face = onFoulGas() ? "u _ u" : "\u2022 \u0301 _ \u2022 \u0300";
             }
             else if (valveState === 1 || pumpStrokePrimed) {
                 if (currentPersonality === 'loving') {
-                    face = gasPressure > 70 ? "\u25c9 \u25bd \u25c9" : "\u2256 \u03c9 \u2256";
+                    face = gasPressure > 70 ? "◉ ▽ ◉" : "◕ ω ◕";
                 } else if (onFoulGas()) {   // holding in foul gas: queasy and wilted
-                    face = gasPressure > 70 ? "> \u2248 <" : "\u2525 \u2248 \u2525";
+                    face = gasPressure > 70 ? "> ≈ <" : "\u2525 ≈ \u2525";
                 } else if (gasPressure > 70) {   // holding in a lot: weak, not fighting
-                    face = currentPersonality === 'sad' ? "\u2565 \u2248 \u2565" : (currentPersonality === 'angry' ? FACE.lidWavy : FACE.tired);
-                } else face = "> \u2248 <";
+                    face = currentPersonality === 'sad' ? "\u2565 ≈ \u2565" : (currentPersonality === 'angry' ? FACE.lidWavy : FACE.tired);
+                } else face = "> ≈ <";
             }
             else if (gasPressure > 55) {
                 const heavy = gasPressure > 80;
                 if (currentPersonality === 'loving') {   // pleasure: eyes closed, blissful
-                    face = heavy ? "\u25c9 \u25bd \u25c9" : "\u2256 \u203f \u2256";
-                } else if (currentPersonality === 'sad') face = heavy ? "\u2565 \u2248 \u2565" : "\u2022 \u2248 \u2022";
+                    face = heavy ? "◕ ▽ ◕" : "◕ ‿ ◕";
+                } else if (currentPersonality === 'sad') face = heavy ? "\u2565 ≈ \u2565" : "\u2022 ≈ \u2022";
                 else if (currentPersonality === 'angry') face = heavy ? FACE.lidWavy : FACE.glare;
-                else face = heavy ? (onFoulGas() ? "\u00d7 \u2248 \u00d7" : FACE.tired) : FACE.worried;
+                else face = heavy ? (onFoulGas() ? "\u00d7 ≈ \u00d7" : FACE.tired) : FACE.worried;
             }
             else {
                 if (currentPersonality === 'sad') {
-                    face = (idleCycles === 0) ? "\u2686 \u2248 \u2686" : ((idleCycles === 1) ? "\u2299 \u2248 \u2299" : "\u2686 _ \u2686");
+                    face = (idleCycles === 0) ? "\u2686 ≈ \u2686" : ((idleCycles === 1) ? "\u2299 ≈ \u2299" : "\u2686 _ \u2686");
                 } else if (currentPersonality === 'angry') {
-                    face = (idleCycles === 0) ? "\u25c9 _ \u25c9" : ((idleCycles === 1) ? "\u0300 _ \u0301" : "\u2014 \u03d6 \u2014");
+                    face = (idleCycles === 0) ? "◉ _ ◉" : ((idleCycles === 1) ? "\u0300 _ \u0301" : "— ϖ —");
                 } else if (currentPersonality === 'loving') {
-                    face = (idleCycles === 0) ? "\u2256 \u03c9 \u2256" : ((idleCycles === 1) ? "\u2296 \u03c9 \u2296" : "\u2256 \u03c1 \u2256");
+                    face = (idleCycles === 0) ? "◕ ω ◕" : ((idleCycles === 1) ? "◉ ω ◉" : "˘ ³ ˘");
                 } else if (onFoulGas()) {   // nasty fuel leaves him drained even between farts
-                    face = (idleCycles === 0) ? FACE.tired : ((idleCycles === 1) ? "- \u2248 -" : "@ _ @");
+                    face = (idleCycles === 0) ? FACE.tired : ((idleCycles === 1) ? "- ≈ -" : "@ _ @");
                 } else {
                     if (idleCycles === 0) face = "\u2022 _ \u2022";
                     else if (idleCycles === 1) face = "\u2686 _ \u2686";
-                    else face = "\u2022 \u2248 \u2022";
+                    else face = "\u2022 ≈ \u2022";
                 }
             }
             
@@ -3097,7 +3097,7 @@
                     fn(e / ms, e); requestAnimationFrame(step);
                 })(t0);
             }
-            const HAPPY = { normal: ["\u2022 _ \u2022", "\u02d8 _ \u02d8"], sad: ["\uff65 _ \uff65", "\u2022 \u2248 \u2022"], angry: ["\u2014 _ \u2014", "\u25c9 _ \u25c9"], loving: ["u ‿ u", "◕ ω ◕"] }; // neutral for most, blissed out for loving
+            const HAPPY = { normal: ["\u2022 _ \u2022", "\u02d8 _ \u02d8"], sad: ["\uff65 _ \uff65", "\u2022 ≈ \u2022"], angry: ["— _ —", "◉ _ ◉"], loving: ["u ‿ u", "◕ ω ◕"] }; // neutral for most, blissed out for loving
             const idleMoves = [
                 () => { // shake that butt
                     setReaction(HAPPY, 2000);
