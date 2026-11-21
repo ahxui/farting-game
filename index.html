@@ -1534,7 +1534,7 @@
                     synthOscSqueak.start(ct);
                 }
 
-                const bufferSize = audioCtx.sampleRate * 1;
+                const bufferSize = audioCtx.sampleRate * 4;
                 const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                 const data = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
@@ -1546,7 +1546,8 @@
                 if (currentDiet === 'chili') noiseFactor *= 2.2; 
                 if (muffleSelect.value === 'muffled') noiseFactor *= 1.5; 
 
-                synthNoiseGain.gain.setValueAtTime((!blowoutActive || gasPressure > 65 ? 0.17 : noiseFactor) * intensity, ct);
+                const nBlendS = Math.min(1, gasPressure / 65);
+                synthNoiseGain.gain.setValueAtTime((noiseFactor * (1 - nBlendS) + 0.17 * nBlendS) * intensity, ct);
 
                 synthNoiseNode.connect(synthNoiseGain); synthNoiseGain.connect(mainFartFilter); synthNoiseNode.start();
 
@@ -1653,7 +1654,7 @@
                     const nowMs = Date.now();
                     baseTargetGain *= (1 - small * 0.25) * (1 - Math.min(0.85, gross * 0.4 + (selectedFuelType === 'poop' ? 0.12 : 0) + graphFx.sputter * 0.5) * (0.5 + 0.5 * Math.sin(nowMs / 29) * Math.sin(nowMs / 83 + 1)));   // sputtering dips
                     synthGain.gain.value = baseTargetGain;
-                    if (synthCrackGain) synthCrackGain.gain.value = Math.max(0, gross + (selectedFuelType === 'poop' ? 0.15 : 0) + graphFx.crackle) * 0.3 * intensity * (Math.random() < 0.5 ? Math.random() : 0);
+                    if (synthCrackGain) synthCrackGain.gain.value = Math.max(0, gross + (selectedFuelType === 'poop' ? 0.15 : 0) + graphFx.crackle) * 0.3 * intensity * (Math.random() < 0.4 ? Math.random() * 0.55 : 0);
                     if (synthSqueal) { synthSqueal.frequency.value = 900 + 500 * Math.sin(nowMs / 140) + Math.random() * 60; synthSquealGain.gain.value = Math.max(0, graphFx.squeal) * 0.09 * intensity; }
                     const poopy = selectedFuelType === 'poop';
                     if ((wetEff > 0.35 || poopy) && Date.now() >= nextWetBubbleAt) {
@@ -1665,7 +1666,7 @@
                 let noiseFactor = selectedFuelType === 'pureair' ? 0.45 : 0.14;
                 if (currentDiet === 'chili') noiseFactor *= 2.2;
                 if (muffleSelect.value === 'muffled') noiseFactor *= 1.6;
-                if (synthNoiseGain) synthNoiseGain.gain.value = (!blowoutActive || gasPressure > 65 ? 0.17 : noiseFactor) * intensity * (1 - 0.5 * small);
+                if (synthNoiseGain) { const nBlend = Math.min(1, gasPressure / 65); synthNoiseGain.gain.value = (noiseFactor * (1 - nBlend) + 0.17 * nBlend) * intensity * (1 - 0.5 * small); }
 
                 let filterCutoff = 450 + (intensity * 350);
                 if (!blowoutActive) {
