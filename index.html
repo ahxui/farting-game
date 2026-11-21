@@ -1488,7 +1488,7 @@
                     mainFartFilter.Q.setValueAtTime(1.0, ct); 
                 } else {
                     mainFartFilter.frequency.setValueAtTime(!blowoutActive ? 320 : 450, ct);
-                    mainFartFilter.Q.setValueAtTime(!blowoutActive ? 4.0 : (6.5 + wetEff * 2.0), ct);
+                    mainFartFilter.Q.setValueAtTime(!blowoutActive ? 4.0 : (6.5 + wetEff * 2.8), ct);
                 }
 
                 synthOsc1 = audioCtx.createOscillator(); synthOsc1.type = selectedFuelType === 'pureair' ? 'sine' : 'sawtooth'; 
@@ -1529,7 +1529,7 @@
 
                 let noiseFactor = selectedFuelType === 'pureair' ? 0.45 : 0.12;
                 if (currentDiet === 'chili') noiseFactor *= 2.2; 
-                if (wetEff > 0) noiseFactor += (wetEff * 0.08);
+                if (wetEff > 0) noiseFactor += (wetEff * 0.16);
                 if (muffleSelect.value === 'muffled') noiseFactor *= 1.5; 
 
                 synthNoiseGain.gain.setValueAtTime((!blowoutActive || gasPressure > 65 ? 0.17 : noiseFactor) * intensity, ct);
@@ -1546,7 +1546,7 @@
                 
                 // cheek flap: the flutter that makes it sound like a fart rather than a drone
                 synthFlap = audioCtx.createOscillator(); synthFlap.type = 'triangle'; synthFlap.frequency.setValueAtTime(vibrationRate * 0.75, ct);
-                synthFlapDepth = audioCtx.createGain(); synthFlapDepth.gain.setValueAtTime(0.28 * fartFlap, ct);
+                synthFlapDepth = audioCtx.createGain(); synthFlapDepth.gain.setValueAtTime(0.34 * fartFlap, ct);
                 synthFlapVCA = audioCtx.createGain(); synthFlapVCA.gain.setValueAtTime(1.0, ct);
                 synthFlap.connect(synthFlapDepth); synthFlapDepth.connect(synthFlapVCA.gain); synthFlap.start(ct);
                 synthSqueal = audioCtx.createOscillator(); synthSqueal.type = 'triangle'; synthSqueal.frequency.value = 1000;
@@ -1568,12 +1568,13 @@
                 const small = tinyMode ? 1 : (() => { const x = Math.min(1, Math.max(0, (intensity - 0.22) / 0.35)); return 1 - x * x * (3 - 2 * x); })();   // 1 = a tiny toot
                 let targetBaseFreq = calculateCurrentAcousticFrequency(gasPressure) * (1 - gross * 0.1) * (1 + 0.3 * small);   // tiny toots are thinner and higher
                 
-                let baseFlutter = ((Math.sin(Date.now() * 0.058) * 5.5) + (Math.random() * 8.0 - 4.0)) * (1 + gross * 1.2 + graphFx.loose * 3);
+                let baseFlutter = ((Math.sin(Date.now() * 0.058) * 5.5) + (Math.random() * 11.0 - 5.5)) * (1 + gross * 1.2 + graphFx.loose * 3);
                 if (currentDiet === 'soda') baseFlutter *= 1.6;
                 targetBaseFreq += baseFlutter * (1.0 + intensity * 0.5);
                 const wfAudio = getFartWobbleFlutter();
                 targetBaseFreq *= (1.0 + wfAudio.pitch);
                 const wetEff = getWetAmount() + gross * 1.4;
+                if (wetEff > 0.25 && Math.random() < 0.05 + wetEff * 0.07) targetBaseFreq *= (0.55 + Math.random() * 0.25);
 
                 synthOsc1.frequency.value = targetBaseFreq;
                 synthOsc2.frequency.value = targetBaseFreq * 0.5;
@@ -1595,7 +1596,7 @@
                 if (synthMod) synthMod.frequency.value = vibrationRate + (Math.random() * (!blowoutActive ? 12 : 5));
                 if (synthFlap && synthFlapDepth) {
                     synthFlap.frequency.value = Math.max(14, vibrationRate * 0.75 * (1 + graphFx.flapSpeed * 0.8) + (Math.random() * 14 - 7));
-                    synthFlapDepth.gain.value = Math.min(0.7, 0.3 * (0.4 + 0.6 * Math.min(1, intensity)) * (1 + gross * 0.35) * fartFlap * (1 + graphFx.flapDepth));
+                    synthFlapDepth.gain.value = Math.min(0.78, 0.36 * (0.4 + 0.6 * Math.min(1, intensity)) * (1 + gross * 0.35) * fartFlap * (1 + graphFx.flapDepth));
                 }
                 if (synthModGain) synthModGain.gain.value = targetBaseFreq * (!blowoutActive ? 0.65 : 0.45);
                 
@@ -1624,7 +1625,7 @@
                 
                 let noiseFactor = selectedFuelType === 'pureair' ? 0.45 : 0.14;
                 if (currentDiet === 'chili') noiseFactor *= 2.2;
-                if (wetEff > 0) noiseFactor += (wetEff * 0.1);
+                if (wetEff > 0) noiseFactor += (wetEff * 0.22);
                 if (muffleSelect.value === 'muffled') noiseFactor *= 1.6;
                 if (synthNoiseGain) synthNoiseGain.gain.value = (!blowoutActive || gasPressure > 65 ? 0.17 : noiseFactor) * intensity * (1 - 0.5 * small);
 
@@ -1647,7 +1648,7 @@
                         mainFartFilter.Q.value = 1.0; 
                     } else {
                         mainFartFilter.frequency.value = Math.min(2400, filterCutoff);
-                        mainFartFilter.Q.value = Math.max(0.8, (!blowoutActive ? 4.0 : (6.5 + wetEff * 2.5)));
+                        mainFartFilter.Q.value = Math.max(0.8, (!blowoutActive ? 4.0 : (6.5 + wetEff * 3.5)));
                     }
                 }
             } catch(e) {}
@@ -1723,7 +1724,7 @@
                 const wasLive = fartVoiceLive;
                 fartVoiceLive = false;
                 if (wasLive && synthOsc1) {
-                    if (currentGross > 0.45) wetTailPops(currentGross);
+                    const wetNow = getWetAmount(); if (currentGross > 0.45 || wetNow > 0.5) wetTailPops(Math.max(currentGross, wetNow * 0.25));
                     playFartTail(currentGross, lastTailIntensity);
                 }
                 currentGross = 0; lastTailIntensity = 0;
