@@ -462,6 +462,9 @@
         #node-editor[hidden] { display: none; }
         #ne-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 10px; background: rgba(0,0,0,0.45); font-size: 12px; }
         #ne-bar button { background: #fff; color: #000; border: 2px solid #000; border-radius: 6px; padding: 6px 10px; font-weight: 800; font-size: 11px; cursor: pointer; }
+        #ne-save-box { display: inline-flex; gap: 4px; align-items: center; }
+        #ne-save-box[hidden] { display: none; }
+        #ne-save-input { padding: 5px 8px; border: 2px solid #000; border-radius: 6px; font-size: 11px; font-weight: 700; width: 140px; color: #000; background: #fff; }
         #ne-hint { opacity: 0.7; font-size: 11px; flex: 1; min-width: 160px; }
         #ne-scroll { flex: 1; overflow: auto; position: relative; touch-action: pan-x pan-y; }
         #ne-ws { position: relative; width: 1800px; height: 1000px; }
@@ -819,6 +822,11 @@
             <b>🧩 Behavior Nodes</b>
             <select id="ne-preset" class="control-select" style="width: auto; max-width: 220px;"></select>
             <button id="ne-save-btn" type="button">Save as…</button>
+            <span id="ne-save-box" hidden>
+                <input id="ne-save-input" type="text" placeholder="Preset name…" maxlength="32">
+                <button id="ne-save-ok" type="button">Save</button>
+                <button id="ne-save-cancel" type="button">Cancel</button>
+            </span>
             <button id="ne-del-btn" type="button">Delete mine</button>
             <select id="ne-add" class="control-select" style="width: auto;"></select>
             <button id="ne-add-btn" type="button">+ Add</button>
@@ -1466,6 +1474,7 @@
         let synthSqueal = null, synthSquealGain = null, fartFlap = 1.0, synthFlap = null, synthFlapDepth = null, synthFlapVCA = null, nextGutAt = 0;
         let fartGrossness = 1.0, currentGross = 0, synthCrackNode = null, synthCrackGain = null, synthCrackFilter = null;
         let fartVoiceLive = false;              // is the main fart voice actually sounding right now
+        let fartVoiceNodes = [];                // tracks active audio nodes so rapid restarts never leak
         let lastTailIntensity = 0;              // strength the fart had on its last sounding frame (drives the end tail)
         // 0..1: how disgusting this fart is. Grows with pressure and strength, plus beans/sulfur and any gut nodes feeding "Fart Grossness"
         function getGrossAmount(intensity) {
@@ -1578,6 +1587,7 @@
                 synthGain.connect(synthFlapVCA); synthFlapVCA.connect(mainFartFilter); mainFartFilter.connect(masterGainNode);
 
                 synthOsc1.start(); synthOsc2.start(); synthOscSub.start(); synthMod.start();
+                fartVoiceNodes = [synthOsc1, synthOsc2, synthOscSub, synthSubGain, synthMod, synthModGain, synthNoiseNode, synthNoiseGain, synthSqueal, synthSquealGain, synthFlap, synthFlapDepth, synthFlapVCA, synthCrackNode, synthCrackFilter, synthCrackGain, mainFartFilter, synthGain, synthOscSqueak, synthSqueakGain].filter(Boolean);
                 fartVoiceLive = true; lastTailIntensity = intensity;
             } catch(e) { console.error(e); }
         }
@@ -1786,30 +1796,17 @@
                     synthSqueakGain.gain.setValueAtTime(synthSqueakGain.gain.value, ct);
                     synthSqueakGain.gain.exponentialRampToValueAtTime(0.0001, ct + 0.14);
                 }
+                const nodesToClean = fartVoiceNodes.slice();
+                fartVoiceNodes = [];
+                synthOsc1 = synthOsc2 = synthOscSub = synthSubGain = synthMod = synthModGain = null;
+                synthNoiseNode = synthNoiseGain = synthSqueal = synthSquealGain = null;
+                synthFlap = synthFlapDepth = synthFlapVCA = synthCrackNode = synthCrackFilter = synthCrackGain = null;
+                mainFartFilter = synthGain = synthOscSqueak = synthSqueakGain = null;
                 setTimeout(() => {
-                    try {
-                        if (fartVoiceLive) return;   // a new fart already restarted on these nodes
-                        if (synthOsc1) { try { synthOsc1.stop(); } catch(e){} synthOsc1.disconnect(); synthOsc1 = null; }
-                        if (synthOsc2) { try { synthOsc2.stop(); } catch(e){} synthOsc2.disconnect(); synthOsc2 = null; }
-                        if (synthOscSub) { try { synthOscSub.stop(); } catch(e){} synthOscSub.disconnect(); synthOscSub = null; }
-                        if (synthSubGain) { synthSubGain.disconnect(); synthSubGain = null; }
-                        if (synthMod) { try { synthMod.stop(); } catch(e){} synthMod.disconnect(); synthMod = null; }
-                        if (synthModGain) { synthModGain.disconnect(); synthModGain = null; }
-                        if (synthNoiseNode) { try { synthNoiseNode.stop(); } catch(e){} synthNoiseNode.disconnect(); synthNoiseNode = null; }
-                        if (synthNoiseGain) { synthNoiseGain.disconnect(); synthNoiseGain = null; }
-                        if (synthSqueal) { try { synthSqueal.stop(); } catch(e){} synthSqueal.disconnect(); synthSqueal = null; }
-                        if (synthSquealGain) { synthSquealGain.disconnect(); synthSquealGain = null; }
-                        if (synthFlap) { try { synthFlap.stop(); } catch(e){} synthFlap.disconnect(); synthFlap = null; }
-                        if (synthFlapDepth) { synthFlapDepth.disconnect(); synthFlapDepth = null; }
-                        if (synthFlapVCA) { synthFlapVCA.disconnect(); synthFlapVCA = null; }
-                        if (synthCrackNode) { try { synthCrackNode.stop(); } catch(e){} synthCrackNode.disconnect(); synthCrackNode = null; }
-                        if (synthCrackFilter) { synthCrackFilter.disconnect(); synthCrackFilter = null; }
-                        if (synthCrackGain) { synthCrackGain.disconnect(); synthCrackGain = null; }
-                        if (mainFartFilter) { mainFartFilter.disconnect(); mainFartFilter = null; }
-                        if (synthGain) { synthGain.disconnect(); synthGain = null; }
-                        if (synthOscSqueak) { try { synthOscSqueak.stop(); } catch(e){} synthOscSqueak.disconnect(); synthOscSqueak = null; }
-                        if (synthSqueakGain) { synthSqueakGain.disconnect(); synthSqueakGain = null; }
-                    } catch(err) { console.error(err); }
+                    nodesToClean.forEach((node) => {
+                        try { if (typeof node.stop === 'function') node.stop(); } catch (e) {}
+                        try { node.disconnect(); } catch (e) {}
+                    });
                 }, 220);
             } catch(err) { console.error(err); }
         }
@@ -2962,8 +2959,23 @@
                 } else if (k === 'escape') { settingsDrawer.classList.remove('open'); }
             });
             window.addEventListener('keyup', (e) => {
-                if (e.key === 'ArrowDown' && downHeld) { downHeld = false; clearInterval(downTimer); if (!isDraggingValve) { valveState = 0; f_intensity = 0; stopFartSound(); } }
-                if (e.key === ' ' && spaceDown) { spaceDown = false; if (isHoldingButt) { isHoldingButt = false; characterState = 'idle'; stopFartSound(); } }
+                if (e.key === 'ArrowDown' && downHeld) {
+                    downHeld = false;
+                    clearInterval(downTimer);
+                    if (!isDraggingValve && !valveLock) {
+                        valveState = 0; f_intensity = 0;
+                        if (!isHoldingButt && characterState !== 'burping') characterState = 'idle';
+                        stopFartSound();
+                    }
+                }
+                if (e.key === ' ' && spaceDown) {
+                    spaceDown = false;
+                    if (isHoldingButt) {
+                        isHoldingButt = false;
+                        if (valveState === 0 && characterState !== 'burping') characterState = 'idle';
+                        stopFartSound();
+                    }
+                }
             });
 
             window.addEventListener('pointerdown', () => { if (audioCtx && audioCtx.state === 'suspended' && !document.hidden) audioCtx.resume(); }, true);
@@ -3283,7 +3295,11 @@
             shakeEl.addEventListener('input', () => { shakeScale = parseFloat(shakeEl.value); });
             lingerEl.addEventListener('change', () => { gasLingerFactor = { short: 1.7, normal: 1, long: 0.5 }[lingerEl.value] || 1; });
             document.getElementById('reset-fella-btn').addEventListener('click', () => {
-                gasPressure = 15; burpPressure = 0; burpAutoUntil = 0; stopBurpVoice(); particles.length = 0;  valveState = 0; f_intensity = 0; isHoldingButt = false; isAutoPumpingActive = false;
+                if (valveLock && window.valveLockToggle) window.valveLockToggle(false);
+                gasPressure = 15; burpPressure = 0; burpTimer = 0; burpDuration = 0; burpAutoUntil = 0;
+                stopBurpVoice(); particles.length = 0; valveState = 0; f_intensity = 0;
+                isHoldingButt = false; isAutoPumpingActive = false; ctrlFartActive = false;
+                characterState = 'idle'; fartSession.active = false;
                 reactionFace = null; reactionUntil = 0; try { stopFartSound(); } catch (e) {}
             });
             const camEl = document.getElementById('layout-cam'), uiEl = document.getElementById('layout-ui'), charEl = document.getElementById('layout-char');
@@ -3683,11 +3699,28 @@
                 } catch (e) {}
                 refreshPresetList();
             });
-            document.getElementById('ne-save-btn').addEventListener('click', () => {
-                const name = (window.prompt('Name this preset:') || '').trim(); if (!name) return;
+            const saveBtn = document.getElementById('ne-save-btn');
+            const saveBox = document.getElementById('ne-save-box');
+            const saveInput = document.getElementById('ne-save-input');
+            const commitSave = () => {
+                const name = (saveInput.value || '').trim();
+                saveBox.hidden = true; saveBtn.hidden = false; saveInput.value = '';
+                if (!name) return;
                 const all = userPresets(); all[name] = { nodes: graph.nodes.map((n) => ({ id: n.id, type: n.type, x: n.x, y: n.y, p: n.p })), links: graph.links };
                 try { localStorage.setItem(USER_PRESETS_KEY, JSON.stringify(all)); } catch (e) {}
                 refreshPresetList(); sel.value = 'u:' + name;
+            };
+            saveBtn.addEventListener('click', () => {
+                saveBtn.hidden = true; saveBox.hidden = false; saveInput.value = ''; saveInput.focus();
+            });
+            document.getElementById('ne-save-ok').addEventListener('click', commitSave);
+            document.getElementById('ne-save-cancel').addEventListener('click', () => {
+                saveBox.hidden = true; saveBtn.hidden = false; saveInput.value = '';
+            });
+            saveInput.addEventListener('keydown', (e) => {
+                e.stopPropagation();
+                if (e.key === 'Enter') commitSave();
+                else if (e.key === 'Escape') { saveBox.hidden = true; saveBtn.hidden = false; saveInput.value = ''; }
             });
             document.getElementById('ne-del-btn').addEventListener('click', () => {
                 const v = sel.value; if (!v || v[0] !== 'u') return;
